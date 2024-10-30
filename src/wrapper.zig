@@ -1,4 +1,5 @@
 const std = @import("std");
+const math = std.math; 
 const tobytes = @import("int.zig").intToBytes;
 const buildSin = @import("int.zig").buildSin;
 
@@ -76,10 +77,13 @@ pub fn PlayAudio(sec: usize) !void {
 }
 
 
+
 //  slice is a pointer 
-pub fn sinCreator(buffer:[]u8) void {
+pub fn sinCreator(buffer:[]u8, sr: u32) void {
     for (buffer, 0..buffer.len) |*char, i| {
-        char.* = tobytes(usize, i)[2];
+        const sr_f64: f64 = @floatFromInt(sr); 
+        const sin: f64 = @sin(2 * math.pi * 4000 / 44100 * i ) + 1 ; 
+        char.* = sin;
     }
 
 }
