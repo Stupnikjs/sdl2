@@ -1,4 +1,5 @@
 const std = @import("std");
+const endian = @import("builtin").cpu.arch.endian();
 const math = std.math;
 const tobytes = @import("int.zig").intToBytes;
 const buildSin = @import("int.zig").buildSin;
@@ -43,7 +44,7 @@ pub fn InitSpec(freq: usize, samples: u16) SDL.SDL_AudioSpec {
     };
 }
 
-pub fn PlayAudio(sec: usize) !void {
+pub fn PlayAudio(sec: usize, frequency: f64) !void {
     const samples: u16 = 400;
     var audioSpec = InitSpec(44100, samples);
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0)
@@ -58,7 +59,7 @@ pub fn PlayAudio(sec: usize) !void {
     const buffer = try allocator.alloc(u8, audio_len);
     defer allocator.free(buffer);
 
-    try sinCreator(buffer, freq_usize);
+    try sinCreator(buffer, freq_usize, frequency);
     audio_pos = buffer.ptr;
 
     _ = SDL.SDL_OpenAudio(&audioSpec, null);
@@ -73,28 +74,39 @@ pub fn PlayAudio(sec: usize) !void {
 }
 
 // a slice is a pointer
-pub fn sinCreator(buffer: []u8, sr: u32) bufferError!void {
+pub fn sinCreator(buffer: []u8, sr: u32, frequency: f64) !void {
+    const amplitude: f64 = 32767.0;
     if (buffer.len % 2 != 0) return bufferError.invalidLength;
     for (0..buffer.len / 2) |i| {
         const sr_f64: f64 = @floatFromInt(sr);
         const if64: f64 = @floatFromInt(i);
-        const sin: f64 = @sin(2 * math.pi * if64 * 1000 / sr_f64) + 1;
-        const int16: u16 = @intFromFloat(@trunc(sin));
-        const bytes = tobytes(u16, int16);
+        const time = if64 / sr_f64;
+        const sin_val: f64 = @trunc(@sin(2 * math.pi * time * frequency) * amplitude);
+        // std.debug.print("{d} \n", .{sin_val});
+        const int16: i16 = @intFromFloat(sin_val);
+        const bytes = tobytes(i16, int16);
         buffer[i * 2] = bytes[0];
         buffer[i * 2 + 1] = bytes[1];
     }
+    // try bufferToCSV(buffer);
     return;
 }
 
-pub fn bufferToCSV(buffer: []u8) bufferError!void {
+pub fn bufferToCSV(buffer: []u8) !void {
     if (buffer.len % 2 != 0) return bufferError.invalidLength;
-    const file = try std.fs.cwd().openFile("buf.csv", .{});
+    const file = try std.fs.cwd().createFile("buf.csv", .{});
 
     for (0..buffer.len / 2) |i| {
-        const buff = buffer[i * 2 .. i * 2 + 1];
-        const sample = std.mem.readInt(i16, buff);
+        const first = buffer[i * 2];
+        const sec = buffer[i * 2 + 1];
+        const buff: [2]u8 = [2]u8{ first, sec };
+        const sample: u16 = std.mem.bytesToValue(u16, &buff);
         // to string
-        try file.write(std.fmt);
+        // std.debug.print("{d} \n", .{sample});
+        var intStr: [6]u8 = undefined;
+        _ = try std.fmt.bufPrint(&intStr, "{}", .{sample});
+        _ = try file.write(&intStr);
     }
+
+    file.close();
 }
