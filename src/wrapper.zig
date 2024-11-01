@@ -45,6 +45,7 @@ pub fn InitSpec(freq: usize, samples: u16) SDL.SDL_AudioSpec {
 }
 
 pub fn PlayAudio(sec: usize, frequency: f64) !void {
+    // fixed samples
     const samples: u16 = 400;
     var audioSpec = InitSpec(44100, samples);
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0)
@@ -54,11 +55,12 @@ pub fn PlayAudio(sec: usize, frequency: f64) !void {
     const allocator = std.heap.page_allocator;
 
     const freq_usize: u32 = @intCast(audioSpec.freq);
-    audio_len = freq_usize * sec; // 10 is sec
+    audio_len = freq_usize * sec;
 
     const buffer = try allocator.alloc(u8, audio_len);
     defer allocator.free(buffer);
 
+    // this func should take start / end and frequency
     try sinCreator(buffer, freq_usize, frequency);
     audio_pos = buffer.ptr;
 
@@ -80,15 +82,19 @@ pub fn sinCreator(buffer: []u8, sr: u32, frequency: f64) !void {
     for (0..buffer.len / 2) |i| {
         const sr_f64: f64 = @floatFromInt(sr);
         const if64: f64 = @floatFromInt(i);
+        //
+        const u_u16: u16 = @truncate(i);
+        const i_i16: i16 = @intCast(u_u16);
+
         const time = if64 / sr_f64;
         const sin_val: f64 = @trunc(@sin(2 * math.pi * time * frequency) * amplitude);
-        // std.debug.print("{d} \n", .{sin_val});
-        const int16: i16 = @intFromFloat(sin_val);
+        var int16: i16 = @intFromFloat(sin_val);
+        if (i < 400) int16 = @divTrunc(int16, (400 - i_i16));
         const bytes = tobytes(i16, int16);
         buffer[i * 2] = bytes[0];
         buffer[i * 2 + 1] = bytes[1];
     }
-    // try bufferToCSV(buffer);
+    try bufferToCSV(buffer);
     return;
 }
 
@@ -101,11 +107,12 @@ pub fn bufferToCSV(buffer: []u8) !void {
         const sec = buffer[i * 2 + 1];
         const buff: [2]u8 = [2]u8{ first, sec };
         const sample: u16 = std.mem.bytesToValue(u16, &buff);
-        // to string
-        // std.debug.print("{d} \n", .{sample});
+
         var intStr: [6]u8 = undefined;
         _ = try std.fmt.bufPrint(&intStr, "{}", .{sample});
         _ = try file.write(&intStr);
+        const space: [1]u8 = [1]u8{'\n'};
+        _ = try file.write(&space);
     }
 
     file.close();
