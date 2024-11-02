@@ -2,7 +2,7 @@ const std = @import("std");
 const endian = @import("builtin").cpu.arch.endian();
 const math = std.math;
 const tobytes = @import("int.zig").intToBytes;
-const buildSin = @import("int.zig").buildSin;
+const sinCreator = @import("sound.zig").sinCreator;
 const types = @import("types.zig");
 const bufferError = types.bufferError;
 
@@ -10,6 +10,7 @@ const SDL = @cImport({
     @cInclude("SDL2/SDL.h");
 });
 
+pub const chunk_size: comptime_int = 8192;
 pub var audio_pos: ?[*]u8 = null; // Pointer to the audio buffer.
 pub var audio_len: usize = 0; // Remaining length of the sample to play.
 
@@ -31,11 +32,12 @@ fn sdlPanic() noreturn {
     @panic(std.mem.sliceTo(str, 0));
 }
 
-pub fn InitSpec(freq: usize, samples: u16) SDL.SDL_AudioSpec {
-    const freq_c: c_int = @intCast(freq);
-
+pub fn InitSpec(sr: usize, samples: u16) SDL.SDL_AudioSpec {
+    const sr_c: c_int = @intCast(sr);
+    // _ = samples;
+    // _ = sr_c;
     return .{
-        .freq = freq_c,
+        .freq = sr_c,
         .format = SDL.AUDIO_S16,
         .channels = 1,
         .samples = samples,
@@ -44,82 +46,59 @@ pub fn InitSpec(freq: usize, samples: u16) SDL.SDL_AudioSpec {
     };
 }
 
-pub fn PlayAudio(sec: usize, frequency: f64) !void {
+pub fn PlayAudio(sec: usize, frequency: usize, sr: usize) !void {
     // fixed samples
-    const samples: u16 = 400;
-    var audioSpec = InitSpec(44100, samples);
+
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0)
         sdlPanic();
     defer SDL.SDL_Quit();
 
+    audio_len = sr * sec;
+    const rest: usize = audio_len % chunk_size;
+    const rest_u16: u16 = @intCast(rest);
+    const iter_num = @divFloor(audio_len, chunk_size);
     const allocator = std.heap.page_allocator;
+    const buffers = try allocator.alloc(*[]u8, iter_num);
 
-    const freq_usize: u32 = @intCast(audioSpec.freq);
-    
-    // max chunk ?
-    // iterate over max chunk len 
-    audio_len = freq_usize * sec; 
-    // how many chunk
-    iter_num = @round(audio_len / max_i16)
+    for (0..iter_num) |i| {
+        const samples: u16 = if (i == iter_num - 1) rest_u16 else chunk_size;
+        var audioSpec = InitSpec(sr, samples);
+        const freq_usize: u32 = @intCast(audioSpec.freq);
+        var buffer = try allocator.alloc(u8, chunk_size * 2);
 
-   // create spec here 
-    const buffer = try allocator.alloc(u8, audio_len);
-    defer allocator.free(buffer);
+        // this func should take start / end and frequency
+        const frequency_f64: f64 = @floatFromInt(frequency);
+        try sinCreator(buffer, freq_usize, frequency_f64);
+        audio_pos = buffer.ptr;
 
-    // sin in buffer 
-    try sinCreator(buffer, freq_usize, frequency);
-    audio_pos = buffer.ptr;
+        buffers[i] = &buffer;
 
-    _ = SDL.SDL_OpenAudio(&audioSpec, null);
-    const err = SDL.SDL_GetError();
-    std.debug.print("SDL_Open audio failled {d}", .{err.*});
+        const num = SDL.SDL_OpenAudio(&audioSpec, null);
+
+        if (num != 0) {
+            const err = SDL.SDL_GetError();
+            std.debug.print("SDL_Open audio failled {d} \n", .{err.*});
+            std.debug.print("error occurs {d} \n", .{num});
+            break;
+        }
+    }
+
     SDL.SDL_PauseAudio(0);
     while (audio_len > 100) {
         SDL.SDL_Delay(100);
     }
     SDL.SDL_CloseAudio();
     _ = SDL.SDL_Quit();
+
+    defer {
+        // Free each buffer in `buffers`
+        for (buffers) |buf| {
+            allocator.free(buf.*);
+        }
+        // Free the `buffers` array itself
+        allocator.free(buffers);
+    }
 }
 
 // a slice is a pointer
-pub fn sinCreator(buffer: []u8, sr: u32, frequency: f64) !void {
-    const amplitude: f64 = 32767.0;
-    if (buffer.len % 2 != 0) return bufferError.invalidLength;
-    for (0..buffer.len / 2) |i| {
-        const sr_f64: f64 = @floatFromInt(sr);
-        const if64: f64 = @floatFromInt(i);
-        //
-        const u_u16: u16 = @truncate(i);
-        const i_i16: i16 = @intCast(u_u16);
-
-        const time = if64 / sr_f64;
-        const sin_val: f64 = @trunc(@sin(2 * math.pi * time * frequency) * amplitude);
-        var int16: i16 = @intFromFloat(sin_val);
-        if (i < 400) int16 = @divTrunc(int16, (400 - i_i16));
-        const bytes = tobytes(i16, int16);
-        buffer[i * 2] = bytes[0];
-        buffer[i * 2 + 1] = bytes[1];
-    }
-    try bufferToCSV(buffer);
-    return;
-}
-
-pub fn bufferToCSV(buffer: []u8) !void {
-    if (buffer.len % 2 != 0) return bufferError.invalidLength;
-    const file = try std.fs.cwd().createFile("buf.csv", .{});
-
-    for (0..buffer.len / 2) |i| {
-        const first = buffer[i * 2];
-        const sec = buffer[i * 2 + 1];
-        const buff: [2]u8 = [2]u8{ first, sec };
-        const sample: u16 = std.mem.bytesToValue(u16, &buff);
-
-        var intStr: [6]u8 = undefined;
-        _ = try std.fmt.bufPrint(&intStr, "{}", .{sample});
-        _ = try file.write(&intStr);
-        const space: [1]u8 = [1]u8{'\n'};
-        _ = try file.write(&space);
-    }
-
-    file.close();
-}
+// buffer to big

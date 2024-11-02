@@ -5,5 +5,5 @@ const wrapper = @import("wrapper.zig");
 
 pub fn main() !void {
     // cant play higer thant one second
-    try wrapper.PlayAudio(1, 240.00);
+    try wrapper.PlayAudio(3, 540.00, 8000);
 }

@@ -13,14 +13,9 @@ pub fn sinCreator(buffer: []u8, sr: u32, frequency: f64) !void {
     for (0..buffer.len / 2) |i| {
         const sr_f64: f64 = @floatFromInt(sr);
         const if64: f64 = @floatFromInt(i);
-        //
-        const u_u16: u16 = @truncate(i);
-        const i_i16: i16 = @intCast(u_u16);
-
         const time = if64 / sr_f64;
         const sin_val: f64 = @trunc(@sin(2 * math.pi * time * frequency) * amplitude);
-        var int16: i16 = @intFromFloat(sin_val);
-        if (i < 400) int16 = @divTrunc(int16, (400 - i_i16));
+        const int16: i16 = @intFromFloat(sin_val);
         const bytes = tobytes(i16, int16);
         buffer[i * 2] = bytes[0];
         buffer[i * 2 + 1] = bytes[1];
