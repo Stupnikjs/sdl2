@@ -55,12 +55,15 @@ pub fn PlayAudio(sec: usize, frequency: f64) !void {
     const allocator = std.heap.page_allocator;
 
     const freq_usize: u32 = @intCast(audioSpec.freq);
+    
+    // max chunk ?
+    // iterate over max chunk len 
     audio_len = freq_usize * sec;
 
     const buffer = try allocator.alloc(u8, audio_len);
     defer allocator.free(buffer);
 
-    // this func should take start / end and frequency
+    
     try sinCreator(buffer, freq_usize, frequency);
     audio_pos = buffer.ptr;
 
