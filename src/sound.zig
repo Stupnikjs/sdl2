@@ -1,4 +1,10 @@
 // sound effect
+const std = @import("std");
+const math = std.math;
+const int = @import("int.zig");
+const tobytes = int.intToBytes;
+const bufferError = @import("types.zig").bufferError;
+const bufferToCSV = @import("csv.zig").bufferToCSV;
 
 // a slice is a pointer
 pub fn sinCreator(buffer: []u8, sr: u32, frequency: f64) !void {
