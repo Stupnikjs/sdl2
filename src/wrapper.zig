@@ -61,6 +61,7 @@ pub fn PlayAudio(sec: usize, frequency: usize, sr: usize) !void {
     const buffers = try allocator.alloc(*[]u8, iter_num);
 
     for (0..iter_num) |i| {
+        std.debug.print("{d}", .{i});
         const samples: u16 = if (i == iter_num - 1) rest_u16 else chunk_size;
         var audioSpec = InitSpec(sr, samples);
         const freq_usize: u32 = @intCast(audioSpec.freq);
