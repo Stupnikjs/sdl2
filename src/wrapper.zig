@@ -73,7 +73,7 @@ pub fn PlayAudio(sec: usize, frequency: usize, sr: usize) !void {
         audio_pos = buffer.ptr;
 
         buffers[i] = &buffer;
-
+        // joint all buffer before this call
         const num = SDL.SDL_OpenAudio(&audioSpec, null);
 
         if (num != 0) {
