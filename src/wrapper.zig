@@ -60,7 +60,7 @@ pub fn PlayAudio(sec: usize, frequency: f64) !void {
     // iterate over max chunk len 
     audio_len = freq_usize * sec; 
     // how many chunk
-    audio_len / max_i16
+    iter_num = @round(audio_len / max_i16)
 
    // create spec here 
     const buffer = try allocator.alloc(u8, audio_len);
