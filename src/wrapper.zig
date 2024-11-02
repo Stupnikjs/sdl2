@@ -10,7 +10,7 @@ const SDL = @cImport({
     @cInclude("SDL2/SDL.h");
 });
 
-pub const chunk_size: comptime_int = 8192;
+
 pub var audio_pos: ?[*]u8 = null; // Pointer to the audio buffer.
 pub var audio_len: usize = 0; // Remaining length of the sample to play.
 
