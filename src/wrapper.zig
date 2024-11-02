@@ -54,35 +54,16 @@ pub fn PlayAudio(sec: usize, frequency: usize, sr: usize) !void {
     defer SDL.SDL_Quit();
 
     audio_len = sr * sec;
-    const rest: usize = audio_len % chunk_size;
-    const rest_u16: u16 = @intCast(rest);
-    const iter_num = @divFloor(audio_len, chunk_size);
     const allocator = std.heap.page_allocator;
-    const buffers = try allocator.alloc(*[]u8, iter_num);
+    var audioSpec = InitSpec(sr, samples);
+    const freq_usize: u32 = @intCast(audioSpec.freq);
+    var buffer = try allocator.alloc(u8, audio_len);
 
-    for (0..iter_num) |i| {
-        std.debug.print("{d}", .{i});
-        const samples: u16 = if (i == iter_num - 1) rest_u16 else chunk_size;
-        var audioSpec = InitSpec(sr, samples);
-        const freq_usize: u32 = @intCast(audioSpec.freq);
-        var buffer = try allocator.alloc(u8, chunk_size * 2);
-
-        // this func should take start / end and frequency
-        const frequency_f64: f64 = @floatFromInt(frequency);
-        try sinCreator(buffer, freq_usize, frequency_f64);
-        audio_pos = buffer.ptr;
-
-        buffers[i] = &buffer;
-        // joint all buffer before this call
-        const num = SDL.SDL_OpenAudio(&audioSpec, null);
-
-        if (num != 0) {
-            const err = SDL.SDL_GetError();
-            std.debug.print("SDL_Open audio failled {d} \n", .{err.*});
-            std.debug.print("error occurs {d} \n", .{num});
-            break;
-        }
-    }
+    const frequency_f64: f64 = @floatFomInt(frequency);
+    try sinCreator(buffer, freq_usize, frequency_f64, allocator);
+    audio_pos = buffer.ptr;
+        
+    const num = SDL.SDL_OpenAudio(&audioSpec, null);
 
     SDL.SDL_PauseAudio(0);
     while (audio_len > 100) {
@@ -91,15 +72,6 @@ pub fn PlayAudio(sec: usize, frequency: usize, sr: usize) !void {
     SDL.SDL_CloseAudio();
     _ = SDL.SDL_Quit();
 
-    defer {
-        // Free each buffer in `buffers`
-        for (buffers) |buf| {
-            allocator.free(buf.*);
-        }
-        // Free the `buffers` array itself
-        allocator.free(buffers);
-    }
 }
-
 // a slice is a pointer
 // buffer to big
