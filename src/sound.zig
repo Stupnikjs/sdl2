@@ -8,7 +8,7 @@ const bufferToCSV = @import("csv.zig").bufferToCSV;
 
 pub const chunk_size: comptime_float = 4096 * 2;
 pub const chunk_size_usize: usize = 4096 * 2;
-pub const amplitude: f64 = 32767.0;
+pub const amplitude: f64 = 3767.0;
 // a slice is a pointer
 pub fn sinCreator(buffer: []u8, sr: u32, frequency: f64, allocator: std.mem.Allocator) !void {
     const buffer_len_float: f64 = @floatFromInt(buffer.len);

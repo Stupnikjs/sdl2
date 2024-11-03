@@ -5,6 +5,6 @@ const api = @import("sdl.zig");
 
 pub fn main() !void {
     for (0..4) |i| {
-        try api.PlayAudio(1, 440 * i, 44100);
+        try api.PlayAudio(1, 440 * i, 66100);
     }
 }
