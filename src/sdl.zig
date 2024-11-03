@@ -3,6 +3,7 @@ const endian = @import("builtin").cpu.arch.endian();
 const math = std.math;
 const tobytes = @import("int.zig").intToBytes;
 const sinCreator = @import("sound.zig").sinCreator;
+const SoundParams = types.SoundParams;
 const types = @import("types.zig");
 const bufferError = types.bufferError;
 const SDL = @cImport({
@@ -46,21 +47,17 @@ pub fn InitSpec(sr: usize, samples: u16) SDL.SDL_AudioSpec {
     };
 }
 
-pub fn PlayAudio(sec: usize, note_freq: usize, sr: usize) !void {
+pub fn PlayAudio(sec: usize, params: SoundParams) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
     defer SDL.SDL_Quit();
 
-    audio_len = sr * sec;
+    audio_len = params.sr * sec;
     const allocator = std.heap.page_allocator;
-
-    var audioSpec = InitSpec(sr, 4096);
+    var audioSpec = InitSpec(params.sr, params.chunk_len);
     const buffer = try allocator.alloc(u8, audio_len); // no need to double size, why?
     audio_pos = buffer.ptr;
 
-    const note_freq_fl: f64 = @floatFromInt(note_freq);
-    const sr_32: u32 = if (sr > math.maxInt(u32)) math.maxInt(u32) else @intCast(sr);
-
-    try sinCreator(buffer, sr_32, note_freq_fl, allocator);
+    try sinCreator(buffer, params, allocator);
     _ = SDL.SDL_OpenAudio(&audioSpec, null);
     SDL.SDL_PauseAudio(0);
     while (audio_len > 100) {
@@ -71,13 +68,3 @@ pub fn PlayAudio(sec: usize, note_freq: usize, sr: usize) !void {
 }
 // a slice is a pointer
 // buffer to big
-
-test "time play audio" {
-    const start = std.time.milliTimestamp();
-    const sec: i64 = 2;
-    try PlayAudio(sec, 440, 44100);
-
-    const end = std.time.milliTimestamp();
-
-    try (std.testing.expect((end - start) > sec));
-}
