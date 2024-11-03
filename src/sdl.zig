@@ -47,17 +47,17 @@ pub fn InitSpec(sr: usize, samples: u16) SDL.SDL_AudioSpec {
 }
 
 pub fn PlayAudio(sec: usize, note_freq: usize, sr: usize) !void {
-    // fixed samples
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
     defer SDL.SDL_Quit();
+
     audio_len = sr * sec;
     const allocator = std.heap.page_allocator;
-    // const samples: u16 = if (audio_len > maxU16) @panic("audio len too big") else @intCast(audio_len);
-    var audioSpec = InitSpec(sr, 4096);
-    const buffer = try allocator.alloc(u8, audio_len * 2);
-    audio_pos = buffer.ptr;
-    const note_freq_fl: f64 = @floatFromInt(note_freq);
 
+    var audioSpec = InitSpec(sr, 4096);
+    const buffer = try allocator.alloc(u8, audio_len); // no need to double size, why?
+    audio_pos = buffer.ptr;
+
+    const note_freq_fl: f64 = @floatFromInt(note_freq);
     const sr_32: u32 = if (sr > math.maxInt(u32)) math.maxInt(u32) else @intCast(sr);
 
     try sinCreator(buffer, sr_32, note_freq_fl, allocator);
