@@ -43,6 +43,9 @@ pub fn sinCreator(buffer: []u8, params: SoundParams, allocator: std.mem.Allocato
     return;
 }
 
+
+
+// needs chunk len params
 pub fn sinToBuff(sin_offset: *f64, params: SoundParams, allocator: std.mem.Allocator) ![]u8 {
     const buff = try allocator.alloc(u8, params.chunk_len);
     for (0..params.chunk_len / 2) |i| {
