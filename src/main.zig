@@ -1,9 +1,10 @@
 const std = @import("std");
 const tobytes = @import("int.zig").intToBytes;
 const buildSin = @import("int.zig").buildSin;
-const wrapper = @import("wrapper.zig");
+const api = @import("sdl.zig");
 
 pub fn main() !void {
-    // cant play higer thant one second
-    try wrapper.PlayAudio(3, 540.00, 8000);
+    for (0..4) |i| {
+        try api.PlayAudio(1, 440 * i, 44100);
+    }
 }
