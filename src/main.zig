@@ -5,6 +5,6 @@ const api = @import("sdl.zig");
 const types = @import("types.zig");
 
 pub fn main() !void {
-    const params = types.SoundParams.init(44100, 440, 4096, 40000);
-    try api.PlayAudio(5, params);
+    const params = types.SoundParams.init(44100, 640, 8192, 10000);
+    try api.PlayAudio(3, params);
 }
