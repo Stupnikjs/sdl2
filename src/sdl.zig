@@ -58,12 +58,18 @@ pub fn PlayAudio(sequence: MusicSeq, params: SoundParams) !void {
     const buffer = try allocator.alloc(u8, audio_len);
     audio_pos = buffer.ptr;
 
-    try sinCreator(buffer, params, allocator);
+    // need to create a buffer
+    for (sequence.seq, 0..sequence.seq.len) |b, i| {
+        const temp_buff = try allocator.alloc(u8, params.sr);
+        if (b) try sinCreator(temp_buff, params, allocator);
+        @memcpy(buffer[i * params.sr .. (i + 1) * params.sr], temp_buff);
+    }
 
     _ = SDL.SDL_OpenAudio(&audioSpec, null);
     SDL.SDL_PauseAudio(0);
-    while (audio_len > 100) {
-        SDL.SDL_Delay(100);
+
+    while (audio_len > 50) {
+        SDL.SDL_Delay(50);
     }
     SDL.SDL_CloseAudio();
     _ = SDL.SDL_Quit();
