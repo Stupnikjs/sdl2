@@ -14,8 +14,7 @@ pub fn bufferToCSV(buffer: []u8) !void {
         const first = buffer[i * 2];
         const sec = buffer[i * 2 + 1];
         const buff: [2]u8 = [2]u8{ first, sec };
-        const sample: u16 = std.mem.bytesToValue(u16, &buff);
-
+        const sample: i16 = std.mem.bytesToValue(i16, &buff);
         var intStr: [6]u8 = undefined;
         _ = try std.fmt.bufPrint(&intStr, "{}", .{sample});
         _ = try file.write(&intStr);

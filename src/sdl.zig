@@ -4,6 +4,7 @@ const math = std.math;
 const tobytes = @import("int.zig").intToBytes;
 const sinCreator = @import("sound.zig").sinCreator;
 const SoundParams = types.SoundParams;
+const MusicSeq = types.MusicSeq;
 const types = @import("types.zig");
 const bufferError = types.bufferError;
 const SDL = @cImport({
@@ -47,17 +48,18 @@ pub fn InitSpec(sr: usize, samples: u16) SDL.SDL_AudioSpec {
     };
 }
 
-pub fn PlayAudio(sec: usize, params: SoundParams) !void {
+pub fn PlayAudio(sequence: MusicSeq, params: SoundParams) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
     defer SDL.SDL_Quit();
 
-    audio_len = params.sr * sec;
+    audio_len = params.sr * sequence.seq.len;
     const allocator = std.heap.page_allocator;
     var audioSpec = InitSpec(params.sr, params.chunk_len);
-    const buffer = try allocator.alloc(u8, audio_len); // no need to double size, why?
+    const buffer = try allocator.alloc(u8, audio_len);
     audio_pos = buffer.ptr;
 
     try sinCreator(buffer, params, allocator);
+
     _ = SDL.SDL_OpenAudio(&audioSpec, null);
     SDL.SDL_PauseAudio(0);
     while (audio_len > 100) {
