@@ -1,7 +1,8 @@
 const std = @import("std")
 
 // sin wave 
-
+// square wave
+// triangle wave 
 // instruments put sound on some pos (seq)
 
 // iterate over buffer and only write on
