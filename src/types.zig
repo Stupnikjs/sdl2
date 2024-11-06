@@ -1,9 +1,16 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const pow = std.math.pow;
 
 pub const bufferError = error{
     invalidLength,
 };
+
+pub fn intToBytes(T: type, source: T) []u8 {
+    var buff: [@divExact(@typeInfo(T).int.bits, 8)]u8 = undefined;
+    _ = std.mem.writeInt(T, &buff, source, builtin.cpu.arch.endian());
+    return &buff;
+}
 
 pub const SoundParams = struct {
     sr: usize,
@@ -41,7 +48,7 @@ pub const MusicSeq = struct {
     pub fn init(len: usize, allocator: std.mem.Allocator) !MusicSeq {
         var sequence = try allocator.alloc(bool, len);
         for (0..len) |i| {
-            if (i % 2 == 0) sequence[i] = true else sequence[i] = false;
+            if (i % 1 == 0) sequence[i] = true else sequence[i] = false;
         }
         return .{ .seq = sequence };
     }

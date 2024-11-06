@@ -2,8 +2,8 @@
 // sound effect
 const std = @import("std");
 const math = std.math;
-const int = @import("int.zig");
-const tobytes = int.intToBytes;
+
+const tobytes = @import("types.zig").intToBytes;
 const bufferError = @import("types.zig").bufferError;
 
 pub fn bufferToCSV(buffer: []u8) !void {

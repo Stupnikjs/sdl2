@@ -1,8 +1,8 @@
 const std = @import("std");
 const endian = @import("builtin").cpu.arch.endian();
 const math = std.math;
-const tobytes = @import("int.zig").intToBytes;
-const sinCreator = @import("sound.zig").sinCreator;
+const tobytes = @import("types.zig").intToBytes;
+const playInstrument = @import("instrument.zig").playInstrument;
 const SoundParams = types.SoundParams;
 const MusicSeq = types.MusicSeq;
 const types = @import("types.zig");
@@ -61,7 +61,7 @@ pub fn PlayAudio(sequence: MusicSeq, params: SoundParams) !void {
     // need to create a buffer
     for (sequence.seq, 0..sequence.seq.len) |b, i| {
         const temp_buff = try allocator.alloc(u8, params.sr);
-        if (b) try sinCreator(temp_buff, params, allocator);
+        if (b) try playInstrument(temp_buff, params, allocator);
         @memcpy(buffer[i * params.sr .. (i + 1) * params.sr], temp_buff);
     }
 
