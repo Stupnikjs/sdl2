@@ -13,6 +13,7 @@ pub fn sinToBuff(buffer_len: usize, sin_offset: *f64, params: SoundParams, alloc
     const note: f64 = @floatFromInt(params.frequency);
 
     // for each sample the arg of the sin is incremented
+    // here is specificity of sin wave
     const phase_increment: f64 = 2 * math.pi * note / sr_f64;
 
     const fade_length: f64 = @floatFromInt(buffer_len / 5);
