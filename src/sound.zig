@@ -8,7 +8,7 @@ const bufferToCSV = @import("csv.zig").bufferToCSV;
 const SoundParams = @import("types.zig").SoundParams;
 
 // a slice is a pointer
-pub fn sinCreator(buffer: []u8, params: SoundParams, allocator: std.mem.Allocator) !void {
+pub fn playInstrument(buffer: []u8, params: SoundParams, allocator: std.mem.Allocator) !void {
     const buffer_len_float: f64 = @floatFromInt(buffer.len);
     const chunk_size_usize: usize = @intCast(params.chunk_len);
     const chunk_size_f64: f64 = @floatFromInt(chunk_size_usize);
