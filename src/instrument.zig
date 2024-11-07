@@ -30,6 +30,7 @@ pub fn playInstrument(buffer: []u8, iter: usize, offset: *f64, params: SoundPara
     for (0..iter_num_usize + 1) |i| {
         if (i != iter_num_usize) {
             const buff = try InstrumentToBuff(Instrument.sinWave, chunk_size_usize, offset, params, allocator);
+            // buffer[ iter * i * chunk_size_usize .. i * chunk_size_usize * iter + chunk_size_usize];
             @memcpy(buffer[i * chunk_size_usize .. i * chunk_size_usize + chunk_size_usize], buff);
             allocator.free(buff);
         } else {
