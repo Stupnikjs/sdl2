@@ -68,6 +68,8 @@ pub fn PlayAudio(sequence: MusicSeq, params: SoundParams) !void {
     // need to create a buffer
     for (sequence.seq, 0..sequence.seq.len) |b, i| {
         if (b) try playInstrument(temp_buff, sin_offset, params, allocator);
+        // temp_buff are not continuous to each other 
+        std.debug.print("{d}" , .{sin_offset.*});
         @memcpy(buffer[i * params.sr .. (i + 1) * params.sr], temp_buff);
     }
 
