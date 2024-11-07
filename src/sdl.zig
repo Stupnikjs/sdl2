@@ -54,22 +54,28 @@ pub fn PlayAudio(sequence: MusicSeq, params: SoundParams) !void {
 
     audio_len = params.sr * sequence.seq.len;
     const allocator = std.heap.page_allocator;
-    var audioSpec = InitSpec(params.sr, params.chunk_len);
+    var audioSpec = InitSpec(params.sr, params.sr);
     const buffer = try allocator.alloc(u8, audio_len);
+    defer allocator.free(buffer);
     audio_pos = buffer.ptr;
 
+    // sin_offset passed from each buffers
+    const sin_offset: *f64 = try allocator.create(f64);
+    sin_offset.* = 0;
+    defer allocator.destroy(sin_offset);
+    const temp_buff = try allocator.alloc(u8, params.sr);
+    defer allocator.free(temp_buff);
     // need to create a buffer
     for (sequence.seq, 0..sequence.seq.len) |b, i| {
-        const temp_buff = try allocator.alloc(u8, params.sr);
-        if (b) try playInstrument(temp_buff, params, allocator);
+        if (b) try playInstrument(temp_buff, sin_offset, params, allocator);
         @memcpy(buffer[i * params.sr .. (i + 1) * params.sr], temp_buff);
     }
 
     _ = SDL.SDL_OpenAudio(&audioSpec, null);
     SDL.SDL_PauseAudio(0);
 
-    while (audio_len > 50) {
-        SDL.SDL_Delay(50);
+    while (audio_len > 100) {
+        SDL.SDL_Delay(1000);
     }
     SDL.SDL_CloseAudio();
     _ = SDL.SDL_Quit();
