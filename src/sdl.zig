@@ -15,6 +15,7 @@ const maxU16: usize = @as(usize, math.maxInt(u16));
 
 pub var audio_pos: ?[*]u8 = null; // Pointer to the audio buffer.
 pub var audio_len: usize = 0; // Remaining length of the sample to play.
+pub const sample_byte_num: usize = 2;
 
 fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) void {
     _ = ctx;
@@ -54,8 +55,8 @@ pub fn PlayAudio(sequence: MusicSeq, params: SoundParams) !void {
 
     audio_len = params.sr * sequence.seq.len;
     const allocator = std.heap.page_allocator;
-    var audioSpec = InitSpec(params.sr, params.sr);
-    const buffer = try allocator.alloc(u8, audio_len);
+    var audioSpec = InitSpec(params.sr, 4096);
+    const buffer = try allocator.alloc(u8, audio_len * sample_byte_num);
     defer allocator.free(buffer);
     audio_pos = buffer.ptr;
 
@@ -63,14 +64,13 @@ pub fn PlayAudio(sequence: MusicSeq, params: SoundParams) !void {
     const sin_offset: *f64 = try allocator.create(f64);
     sin_offset.* = 0;
     defer allocator.destroy(sin_offset);
-    const temp_buff = try allocator.alloc(u8, params.sr);
+    const temp_buff = try allocator.alloc(u8, params.sr * 2 );
     defer allocator.free(temp_buff);
     // need to create a buffer
     for (sequence.seq, 0..sequence.seq.len) |b, i| {
-        if (b) try playInstrument(temp_buff, sin_offset, params, allocator);
+        if (b) try playInstrument(temp_buff, i, sin_offset, params, allocator);
         // temp_buff are not continuous to each other 
-        std.debug.print("{d}" , .{sin_offset.*});
-        @memcpy(buffer[i * params.sr .. (i + 1) * params.sr], temp_buff);
+        @memcpy(buffer[i * params.sr * 2  .. (i + 1) * params.sr * 2 ], temp_buff);
     }
 
     _ = SDL.SDL_OpenAudio(&audioSpec, null);
