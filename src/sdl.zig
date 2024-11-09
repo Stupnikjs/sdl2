@@ -78,8 +78,8 @@ pub fn PlayAudio(params: SoundParams) !void {
     }
 
     if (audio_len == 0) {
-        allocator.free(buffer);
         SDL.SDL_CloseAudio();
+        allocator.free(buffer);
         _ = SDL.SDL_Quit();
     }
 }
