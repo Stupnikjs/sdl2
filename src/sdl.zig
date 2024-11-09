@@ -21,6 +21,7 @@ pub const sec_len: usize = 10;
 fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) void {
     _ = ctx;
     // Accessing global variables audio_pos and audio_len
+    // Crunching might come from here 
     if (audio_len == 0) return;
     const len_usize: usize = @intCast(len);
     const audio_len_usize: usize = @intCast(audio_len);
