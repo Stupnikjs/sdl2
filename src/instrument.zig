@@ -15,8 +15,7 @@ pub const Instrument = enum {
 // needs to multiply the buffer len by the step len and copy to the right spot in buffer
 // may be the reason of the click
 
-pub fn playInstrument(buffer: []u8, iter: usize, offset: *f64, params: SoundParams, allocator: std.mem.Allocator) !void {
-    _ = iter;
+pub fn playInstrument(buffer: []u8, offset: *f64, params: SoundParams, allocator: std.mem.Allocator) !void {
     const buffer_len_float: f64 = @floatFromInt(buffer.len);
     const chunk_size_usize: usize = @intCast(params.chunk_len);
     const chunk_size_f64: f64 = @floatFromInt(chunk_size_usize);

@@ -15,7 +15,8 @@ const maxU16: usize = @as(usize, math.maxInt(u16));
 
 pub var audio_pos: ?[*]u8 = null; // Pointer to the audio buffer.
 pub var audio_len: usize = 0; // Remaining length of the sample to play.
-pub const sample_byte_num: usize = 2;
+pub const sample_byte_num: usize = 1;
+pub const sec_len: usize = 10;
 
 fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) void {
     _ = ctx;
@@ -49,38 +50,37 @@ pub fn InitSpec(sr: usize, samples: u16) SDL.SDL_AudioSpec {
     };
 }
 
-pub fn PlayAudio(sequence: MusicSeq, params: SoundParams) !void {
+pub fn PlayAudio(params: SoundParams) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
     defer SDL.SDL_Quit();
 
-    audio_len = params.sr * sequence.seq.len;
+    audio_len = params.sr * sample_byte_num * sec_len;
     const allocator = std.heap.page_allocator;
-    var audioSpec = InitSpec(params.sr, 4096);
+    var audioSpec = InitSpec(params.sr, 512);
     const buffer = try allocator.alloc(u8, audio_len * sample_byte_num);
-    defer allocator.free(buffer);
     audio_pos = buffer.ptr;
 
     // sin_offset passed from each buffers
     const sin_offset: *f64 = try allocator.create(f64);
     sin_offset.* = 0;
     defer allocator.destroy(sin_offset);
-    const temp_buff = try allocator.alloc(u8, params.sr * 2 );
-    defer allocator.free(temp_buff);
-    // need to create a buffer
-    for (sequence.seq, 0..sequence.seq.len) |b, i| {
-        if (b) try playInstrument(temp_buff, i, sin_offset, params, allocator);
-        // temp_buff are not continuous to each other 
-        @memcpy(buffer[i * params.sr * 2  .. (i + 1) * params.sr * 2 ], temp_buff);
-    }
 
+    // need to create a buffer
+
+    try playInstrument(buffer, sin_offset, params, allocator);
     _ = SDL.SDL_OpenAudio(&audioSpec, null);
+
     SDL.SDL_PauseAudio(0);
 
-    while (audio_len > 100) {
+    while (audio_len > 1000) {
         SDL.SDL_Delay(1000);
     }
-    SDL.SDL_CloseAudio();
-    _ = SDL.SDL_Quit();
+
+    if (audio_len == 0) {
+        allocator.free(buffer);
+        SDL.SDL_CloseAudio();
+        _ = SDL.SDL_Quit();
+    }
 }
 // a slice is a pointer
 // buffer to big
