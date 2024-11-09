@@ -12,8 +12,6 @@ pub const Instrument = enum {
     triangleWave,
 };
 
-// needs to multiply the buffer len by the step len and copy to the right spot in buffer
-// may be the reason of the click
 
 pub fn playInstrument(buffer: []u8, offset: *f64, params: SoundParams, allocator: std.mem.Allocator) !void {
     const buffer_len_float: f64 = @floatFromInt(buffer.len);
@@ -29,7 +27,6 @@ pub fn playInstrument(buffer: []u8, offset: *f64, params: SoundParams, allocator
     for (0..iter_num_usize + 1) |i| {
         if (i != iter_num_usize) {
             const buff = try InstrumentToBuff(Instrument.sinWave, chunk_size_usize, offset, params, allocator);
-            // buffer[ iter * i * chunk_size_usize .. i * chunk_size_usize * iter + chunk_size_usize];
             @memcpy(buffer[i * chunk_size_usize .. i * chunk_size_usize + chunk_size_usize], buff);
             allocator.free(buff);
         } else {
