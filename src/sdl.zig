@@ -17,11 +17,14 @@ pub var audio_pos: ?[*]u8 = null; // Pointer to the audio buffer.
 pub var audio_len: usize = 0; // Remaining length of the sample to play.
 pub const sample_byte_num: usize = 1;
 pub const sec_len: usize = 10;
-
+pub var index: usize = 0;
 fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) void {
     _ = ctx;
+    index += 1;
+    std.debug.print("index {d} \n", .{index});
+    // std.debug.print(" callback is called \n", .{});
     // Accessing global variables audio_pos and audio_len
-    // Crunching might come from here 
+    // Crunching might come from here
     if (audio_len == 0) return;
     const len_usize: usize = @intCast(len);
     const audio_len_usize: usize = @intCast(audio_len);
