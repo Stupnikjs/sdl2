@@ -12,7 +12,6 @@ pub const Instrument = enum {
     triangleWave,
 };
 
-
 pub fn playInstrument(buffer: []u8, offset: *f64, params: SoundParams, allocator: std.mem.Allocator) !void {
     const buffer_len_float: f64 = @floatFromInt(buffer.len);
     const chunk_size_usize: usize = @intCast(params.chunk_len);
@@ -40,7 +39,6 @@ pub fn playInstrument(buffer: []u8, offset: *f64, params: SoundParams, allocator
 }
 
 pub fn InstrumentToBuff(instrument: Instrument, buffer_len: usize, sin_offset: *f64, params: SoundParams, allocator: std.mem.Allocator) ![]u8 {
-    _ = instrument;
     const buff = try allocator.alloc(u8, buffer_len);
     const sr_f64: f64 = @floatFromInt(params.sr);
     const note: f64 = @floatFromInt(params.frequency);
@@ -50,8 +48,11 @@ pub fn InstrumentToBuff(instrument: Instrument, buffer_len: usize, sin_offset: *
     for (0..buffer_len / 2) |i| {
 
         // get the value and increment the offset
-        const sin_val: f64 = sinFunc(sin_offset, note, sr_f64);
-        const int16: i16 = @intFromFloat(sin_val * params.amplitude);
+        const val: f64 = switch (instrument) {
+            Instrument.sinWave => sinFunc(sin_offset, note, sr_f64),
+            else => return error.invalidLength,
+        };
+        const int16: i16 = @intFromFloat(val * params.amplitude);
         const bytes = tobytes(i16, int16);
 
         buff[i * 2] = bytes[0];
@@ -66,3 +67,5 @@ pub fn sinFunc(offset: *f64, note: f64, sr_f64: f64) f64 {
     offset.* += phase_increment;
     return sin_val;
 }
+
+pub fn squareSinFunc(offset: *f64, note: f64, sr_f64: f64) f64 {}

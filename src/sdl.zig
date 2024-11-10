@@ -4,7 +4,7 @@ const math = std.math;
 const tobytes = @import("types.zig").intToBytes;
 const playInstrument = @import("instrument.zig").playInstrument;
 const SoundParams = types.SoundParams;
-const MusicSeq = types.MusicSeq;
+const effect = @import("effect.zig");
 const types = @import("types.zig");
 const bufferError = types.bufferError;
 const SDL = @cImport({
@@ -16,20 +16,25 @@ const maxU16: usize = @as(usize, math.maxInt(u16));
 pub var audio_pos: ?[*]u8 = null; // Pointer to the audio buffer.
 pub var audio_len: usize = 0; // Remaining length of the sample to play.
 pub const sample_byte_num: usize = 1;
-pub const sec_len: usize = 10;
-pub var index: usize = 0;
+pub const sec_len: usize = 1;
+
 fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) void {
     _ = ctx;
-    index += 1;
-    std.debug.print("index {d} \n", .{index});
-    // std.debug.print(" callback is called \n", .{});
+    std.debug.print("index {d} \n", .{audio_len});
+
     // Accessing global variables audio_pos and audio_len
     // Crunching might come from here
-    if (audio_len == 0) return;
+
     const len_usize: usize = @intCast(len);
     const audio_len_usize: usize = @intCast(audio_len);
     const length = if (len > audio_len) audio_len_usize else len_usize;
+
     const audio_cast: [*c]u8 = @ptrCast(audio_pos);
+    if (audio_len < 2000) {
+        _ = SDL.SDL_memset(stream, 0, length); // Copy audio data to stream
+        audio_len = 0;
+        return;
+    }
     _ = SDL.SDL_memcpy(stream, audio_cast, length); // Copy audio data to stream
     audio_pos.? += length;
     audio_len -= length;
@@ -72,6 +77,7 @@ pub fn PlayAudio(params: SoundParams) !void {
     // need to create a buffer
 
     try playInstrument(buffer, sin_offset, params, allocator);
+
     _ = SDL.SDL_OpenAudio(&audioSpec, null);
 
     SDL.SDL_PauseAudio(0);
