@@ -68,4 +68,4 @@ pub fn sinFunc(offset: *f64, note: f64, sr_f64: f64) f64 {
     return sin_val;
 }
 
-pub fn squareSinFunc(offset: *f64, note: f64, sr_f64: f64) f64 {}
+// pub fn squareSinFunc(offset: *f64, note: f64, sr_f64: f64) f64 {}
