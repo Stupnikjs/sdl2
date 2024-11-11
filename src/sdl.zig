@@ -16,11 +16,10 @@ const maxU16: usize = @as(usize, math.maxInt(u16));
 pub var audio_pos: ?[*]u8 = null; // Pointer to the audio buffer.
 pub var audio_len: usize = 0; // Remaining length of the sample to play.
 pub const sample_byte_num: usize = 1;
-pub const sec_len: usize = 1;
+pub var sec_len: f64 = 0.04;
 
 fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) void {
     _ = ctx;
-    std.debug.print("index {d} \n", .{audio_len});
 
     // Accessing global variables audio_pos and audio_len
     // Crunching might come from here
@@ -30,7 +29,11 @@ fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) 
     const length = if (len > audio_len) audio_len_usize else len_usize;
 
     const audio_cast: [*c]u8 = @ptrCast(audio_pos);
-    if (audio_len < 2000) {
+
+    const limit: f64 = 3200 * sec_len;
+    const limit_usize: usize = @intFromFloat(limit);
+    if (audio_len < limit_usize) {
+        // need some fadding end
         _ = SDL.SDL_memset(stream, 0, length); // Copy audio data to stream
         audio_len = 0;
         return;
@@ -47,8 +50,6 @@ fn sdlPanic() noreturn {
 
 pub fn InitSpec(sr: usize, samples: u16) SDL.SDL_AudioSpec {
     const sr_c: c_int = @intCast(sr);
-    // _ = samples;
-    // _ = sr_c;
     return .{
         .freq = sr_c,
         .format = SDL.AUDIO_S16,
@@ -62,8 +63,9 @@ pub fn InitSpec(sr: usize, samples: u16) SDL.SDL_AudioSpec {
 pub fn PlayAudio(params: SoundParams) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
     defer SDL.SDL_Quit();
-
-    audio_len = params.sr * sample_byte_num * sec_len;
+    var audio_len_float: f64 = @floatFromInt(params.sr * sample_byte_num);
+    audio_len_float *= sec_len;
+    audio_len = @intFromFloat(audio_len_float);
     const allocator = std.heap.page_allocator;
     var audioSpec = InitSpec(params.sr, 512);
     const buffer = try allocator.alloc(u8, audio_len * sample_byte_num);

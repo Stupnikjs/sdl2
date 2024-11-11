@@ -14,17 +14,15 @@ pub fn intToBytes(T: type, source: T) []u8 {
 
 pub const SoundParams = struct {
     sr: usize,
-    frequency: u32,
+    frequency: f64,
     chunk_len: u16,
     amplitude: f64,
-    pub fn init(sr: usize, frequency: u32, chunk_len: u16, amplitude: f64) SoundParams {
+    pub fn init(sr: usize, frequency: f64, chunk_len: u16) SoundParams {
         return .{
             .sr = sr,
             .frequency = frequency,
             .chunk_len = chunk_len,
-            .amplitude = amplitude,
+            .amplitude = 10000,
         };
     }
 };
-
-
