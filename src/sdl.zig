@@ -3,6 +3,7 @@ const endian = @import("builtin").cpu.arch.endian();
 const math = std.math;
 const tobytes = @import("types.zig").intToBytes;
 const playInstrument = @import("instrument.zig").playInstrument;
+const Instrument = @import("instrument.zig").Instrument;
 const SoundParams = types.SoundParams;
 const effect = @import("effect.zig");
 const types = @import("types.zig");
@@ -16,7 +17,7 @@ const maxU16: usize = @as(usize, math.maxInt(u16));
 pub var audio_pos: ?[*]u8 = null; // Pointer to the audio buffer.
 pub var audio_len: usize = 0; // Remaining length of the sample to play.
 pub const sample_byte_num: usize = 1;
-pub var sec_len: f64 = 0.04;
+pub var sec_len: f64 = 10;
 
 fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) void {
     _ = ctx;
@@ -30,10 +31,9 @@ fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) 
 
     const audio_cast: [*c]u8 = @ptrCast(audio_pos);
 
-    const limit: f64 = 3200 * sec_len;
+    const limit: f64 = 4000 * sec_len;
     const limit_usize: usize = @intFromFloat(limit);
     if (audio_len < limit_usize) {
-        // need some fadding end
         _ = SDL.SDL_memset(stream, 0, length); // Copy audio data to stream
         audio_len = 0;
         return;
@@ -67,7 +67,7 @@ pub fn PlayAudio(params: SoundParams) !void {
     audio_len_float *= sec_len;
     audio_len = @intFromFloat(audio_len_float);
     const allocator = std.heap.page_allocator;
-    var audioSpec = InitSpec(params.sr, 512);
+    var audioSpec = InitSpec(params.sr, 1024);
     const buffer = try allocator.alloc(u8, audio_len * sample_byte_num);
     audio_pos = buffer.ptr;
 
@@ -78,7 +78,7 @@ pub fn PlayAudio(params: SoundParams) !void {
 
     // need to create a buffer
 
-    try playInstrument(buffer, sin_offset, params, allocator);
+    try playInstrument(buffer, sin_offset, params, Instrument.squareWave, allocator);
 
     _ = SDL.SDL_OpenAudio(&audioSpec, null);
 

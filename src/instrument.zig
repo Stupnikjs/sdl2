@@ -12,7 +12,7 @@ pub const Instrument = enum {
     triangleWave,
 };
 
-pub fn playInstrument(buffer: []u8, offset: *f64, params: SoundParams, allocator: std.mem.Allocator) !void {
+pub fn playInstrument(buffer: []u8, offset: *f64, params: SoundParams, instrument: Instrument, allocator: std.mem.Allocator) !void {
     const buffer_len_float: f64 = @floatFromInt(buffer.len);
     const chunk_size_usize: usize = @intCast(params.chunk_len);
     const chunk_size_f64: f64 = @floatFromInt(chunk_size_usize);
@@ -25,11 +25,11 @@ pub fn playInstrument(buffer: []u8, offset: *f64, params: SoundParams, allocator
 
     for (0..iter_num_usize + 1) |i| {
         if (i != iter_num_usize) {
-            const buff = try InstrumentToBuff(Instrument.sinWave, chunk_size_usize, offset, params, allocator);
+            const buff = try InstrumentToBuff(instrument, chunk_size_usize, offset, params, allocator);
             @memcpy(buffer[i * chunk_size_usize .. i * chunk_size_usize + chunk_size_usize], buff);
             allocator.free(buff);
         } else {
-            const buff = try InstrumentToBuff(Instrument.squareWave, rest_usize, offset, params, allocator);
+            const buff = try InstrumentToBuff(Instrument.sinWave, rest_usize, offset, params, allocator);
             @memcpy(buffer[iter_num_usize * chunk_size_usize .. iter_num_usize * chunk_size_usize + rest_usize], buff);
             allocator.free(buff);
         }
@@ -41,8 +41,6 @@ pub fn playInstrument(buffer: []u8, offset: *f64, params: SoundParams, allocator
 pub fn InstrumentToBuff(instrument: Instrument, buffer_len: usize, sin_offset: *f64, params: SoundParams, allocator: std.mem.Allocator) ![]u8 {
     const buff = try allocator.alloc(u8, buffer_len);
     const sr_f64: f64 = @floatFromInt(params.sr);
-
-    // GET THE DIRECTION OF THE WAVE FOR JOIN
 
     for (0..buffer_len / 2) |i| {
 
