@@ -75,10 +75,9 @@ pub fn PlayAudio(params: SoundParams) !void {
     sin_offset.* = 0;
     defer allocator.destroy(sin_offset);
 
-    // instead of Instrument 
-    // need to pass a "PlayMap"
+    const map:PlayMap = PlayMap.init(); 
 
-    try playInstrument(buffer, sin_offset, params, Instrument.squareWave, allocator);
+    try playMap(buffer, sin_offset, params, map, allocator);
 
     _ = SDL.SDL_OpenAudio(&audioSpec, null);
 
