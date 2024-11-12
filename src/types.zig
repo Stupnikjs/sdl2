@@ -26,3 +26,23 @@ pub const SoundParams = struct {
         };
     }
 };
+
+
+
+pub const PlayMap = struct {
+    instruments: []Instrument,
+    lens: []u8,
+    notes: []f64,
+    allocator: std.mem.Allocator, 
+     
+    pub fn 
+}
+
+pub const Step = struct {
+    instrument: Instrument, 
+    len: u8, 
+    note:f64,
+    
+
+
+}
