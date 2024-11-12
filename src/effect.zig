@@ -3,6 +3,12 @@ const builtin = @import("builtin");
 const tobytes = @import("types.zig").intToBytes;
 // fade
 
+pub const Effect = enum {
+    fade,
+    blur,
+    bitreverse,
+};
+
 // bitreverse
 pub fn fade(buffer: []u8) !void {
     for (0..buffer.len / 2) |i| {

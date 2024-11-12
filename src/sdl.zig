@@ -2,12 +2,14 @@ const std = @import("std");
 const endian = @import("builtin").cpu.arch.endian();
 const math = std.math;
 const tobytes = @import("types.zig").intToBytes;
-const playInstrument = @import("instrument.zig").playInstrument;
+const play = @import("instrument.zig").play;
 const Instrument = @import("instrument.zig").Instrument;
 const SoundParams = types.SoundParams;
 const effect = @import("effect.zig");
 const types = @import("types.zig");
+const Track = types.Track;
 const bufferError = types.bufferError;
+
 const SDL = @cImport({
     @cInclude("SDL2/SDL.h");
 });
@@ -64,29 +66,27 @@ pub fn PlayAudio(params: SoundParams) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
     defer SDL.SDL_Quit();
 
-
     var audio_len_float: f64 = @floatFromInt(params.sr * sample_byte_num);
     audio_len_float *= sec_len;
-    std.debug.print(" total chunks number {d} \n", .{audio_len_float/params.chunk_size}
+    const float_chunk_len: f64 = @floatFromInt(params.chunk_len);
+    std.debug.print(" total chunks number {d} \n", .{audio_len_float / float_chunk_len});
     audio_len = @intFromFloat(audio_len_float);
 
-
     var audioSpec = InitSpec(params.sr, 1024);
-
 
     const allocator = std.heap.page_allocator;
     const buffer = try allocator.alloc(u8, audio_len);
     audio_pos = buffer.ptr;
 
-
     const sin_offset: *f64 = try allocator.create(f64);
     sin_offset.* = 0;
     defer allocator.destroy(sin_offset);
 
+    var tracks: []Track = try allocator.alloc(Track, 1);
+    const seq = [_]bool{ true, false, false, true };
+    tracks[0] = Track.init(Instrument.sinWave, effect.Effect.fade, seq[0..]);
 
-    const map:PlayMap = PlayMap.init(); 
-    try playMap(buffer, sin_offset, params, map, allocator);
-
+    try play(buffer, sin_offset, params, tracks, allocator);
 
     _ = SDL.SDL_OpenAudio(&audioSpec, null);
     SDL.SDL_PauseAudio(0);
@@ -94,13 +94,11 @@ pub fn PlayAudio(params: SoundParams) !void {
         SDL.SDL_Delay(1000);
     }
 
-
     if (audio_len == 0) {
         SDL.SDL_CloseAudio();
         allocator.free(buffer);
         _ = SDL.SDL_Quit();
     }
-
 }
 // a slice is a pointer
 // buffer to big

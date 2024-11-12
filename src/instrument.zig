@@ -12,49 +12,36 @@ pub const Instrument = enum {
     triangleWave,
 };
 
-pub fn playMap(buffer: []u8, offset: *f64, params: SoundParams, map: PlayMap, allocator: std.mem.Allocator) !void {
-    const buffer_len_float: f64 = @floatFromInt(buffer.len);
-    const chunk_size_usize: usize = @intCast(params.chunk_len);
-    const chunk_size_f64: f64 = @floatFromInt(chunk_size_usize);
-    const iter_num: f64 = buffer_len_float / chunk_size_f64;
+pub fn play(buffer: []u8, offset: *f64, params: SoundParams, tracks: []types.Track, allocator: std.mem.Allocator) !void {
+    if (@mod(buffer.len, tracks[0].seq.len) != 0) return types.bufferError.invalidLength;
 
-    // last iteration to finsh buffer
-    const rest: f64 = @mod(buffer_len_float, iter_num);
+    const buffer_chunk_num: usize = tracks[0].seq.len;
 
-    // inter num rouned to int 
-    const iter_num_usize: usize = @intFromFloat(iter_num);
-    const rest_usize: usize = @intFromFloat(rest);
+    for (0..buffer_chunk_num) |i| {
+        const sliced_buff = buffer[i * buffer.len / buffer_chunk_num .. (i + 1) * buffer.len / buffer_chunk_num];
+        try innerLoop(sliced_buff, offset, params, allocator);
+    }
 
-    // each loop allocate a chunk buffer 
-    // and copy it to the main buffer passed to sdl 
-    // last iteration is with the rest 
-    // should be able to pass instrument for each chunk 
-    // the play map should be same length as iteration if iter_num_usize != map.seq_len 
-    // so we should iter on map 
+    // try bufferToCSV(buffer);
+    return;
+}
 
-
-    for (0..iter_num_usize + 1) |i| {
-    // loop over (map.instruments,0..map.len) 
+pub fn innerLoop(buffer: []u8, offset: *f64, params: SoundParams, allocator: std.mem.Allocator) !void {
+    const iter_num_usize = buffer.len / params.chunk_len;
+    const chunk_size: usize = @intCast(params.chunk_len);
+    for (0..iter_num_usize) |i| {
+        // loop over (map.instruments,0..map.len)
         if (i != iter_num_usize) {
+            // pass the note also
+            // need intrument and effect in some struct
 
-            // pass the note also 
-            const buff = try InstrumentToBuff(instrument, chunk_size_usize, offset, params, allocator);
+            const buff = try InstrumentToBuff(Instrument.sinWave, params.chunk_len, offset, params, allocator);
 
-            // copy intermediate buffer to main one 
-            @memcpy(buffer[i * chunk_size_usize .. i * chunk_size_usize + chunk_size_usize], buff);
-
+            // copy intermediate buffer to main one
+            @memcpy(buffer[i * chunk_size .. i * chunk_size + chunk_size], buff);
             allocator.free(buff);
-
-        } else {
-
-            const buff = try InstrumentToBuff(Instrument.sinWave, rest_usize, offset, params, allocator);
-            @memcpy(buffer[iter_num_usize * chunk_size_usize .. iter_num_usize * chunk_size_usize + rest_usize], buff);
-            allocator.free(buff);
-
         }
     }
-    try bufferToCSV(buffer);
-    return;
 }
 
 pub fn InstrumentToBuff(instrument: Instrument, buffer_len: usize, sin_offset: *f64, params: SoundParams, allocator: std.mem.Allocator) ![]u8 {

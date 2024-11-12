@@ -1,6 +1,8 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const pow = std.math.pow;
+const Instrument = @import("instrument.zig").Instrument;
+const Effect = @import("effect.zig").Effect;
 
 pub const bufferError = error{
     invalidLength,
@@ -27,21 +29,16 @@ pub const SoundParams = struct {
     }
 };
 
+pub const Track = struct {
+    instrument: Instrument,
+    effect: Effect, // change it to array of effect
+    seq: []const bool,
 
-
-pub const PlayMap = struct {
-    instruments: std.ArrayList(Instrument),
-    lens: std.ArrayList(u8),
-    notes: std.ArrayList(f64),
-    allocator: std.mem.Allocator, 
-     
-    pub fn init(allocator: std.mem.Allocator) *PlayMap {
+    pub fn init(instrument: Instrument, effect: Effect, seq: []const bool) Track {
         return .{
-        .instrument = std.ArrayList(Instrument).init(allocator), 
-        .lens = std.ArrayList(u8).init(allocator), 
-        .notes = std.ArrayList(f64).init(allocator), 
-        .allocator = allocator, 
+            .instrument = instrument,
+            .effect = effect,
+            .seq = seq,
+        };
     }
-}
-
-
+};
