@@ -71,12 +71,12 @@ pub fn PlayAudio(params: SoundParams) !void {
     const buffer = try allocator.alloc(u8, audio_len);
     audio_pos = buffer.ptr;
 
-    // sin_offset passed from each buffers
     const sin_offset: *f64 = try allocator.create(f64);
     sin_offset.* = 0;
     defer allocator.destroy(sin_offset);
 
-    // need to create a buffer
+    // instead of Instrument 
+    // need to pass a "PlayMap"
 
     try playInstrument(buffer, sin_offset, params, Instrument.squareWave, allocator);
 
