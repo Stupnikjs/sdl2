@@ -68,7 +68,7 @@ pub fn PlayAudio(params: SoundParams) !void {
     audio_len = @intFromFloat(audio_len_float);
     const allocator = std.heap.page_allocator;
     var audioSpec = InitSpec(params.sr, 1024);
-    const buffer = try allocator.alloc(u8, audio_len * sample_byte_num);
+    const buffer = try allocator.alloc(u8, audio_len);
     audio_pos = buffer.ptr;
 
     // sin_offset passed from each buffers
