@@ -34,14 +34,23 @@ pub fn playMap(buffer: []u8, offset: *f64, params: SoundParams, map: PlayMap, al
 
 
     for (0..iter_num_usize + 1) |i| {
+    // loop over (map.instruments,0..map.len) 
         if (i != iter_num_usize) {
+
+            // pass the note also 
             const buff = try InstrumentToBuff(instrument, chunk_size_usize, offset, params, allocator);
+
+            // copy intermediate buffer to main one 
             @memcpy(buffer[i * chunk_size_usize .. i * chunk_size_usize + chunk_size_usize], buff);
+
             allocator.free(buff);
+
         } else {
+
             const buff = try InstrumentToBuff(Instrument.sinWave, rest_usize, offset, params, allocator);
             @memcpy(buffer[iter_num_usize * chunk_size_usize .. iter_num_usize * chunk_size_usize + rest_usize], buff);
             allocator.free(buff);
+
         }
     }
     try bufferToCSV(buffer);
