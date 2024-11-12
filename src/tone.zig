@@ -5,6 +5,17 @@ const api = @import("sdl.zig");
 const types = @import("types.zig");
 const pow = math.pow;
 
+
+pub const Note = enum {
+        A, 
+        B, // Half tone  
+        C, 
+        D, // Half tone 
+        E,
+        F,
+        G
+}; 
+
 pub fn getNoteFactor(note: f64, tone_num: f64) f64 {
     return note * pow(f64, 2, (tone_num / 12));
 }
