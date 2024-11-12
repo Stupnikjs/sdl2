@@ -22,7 +22,7 @@ pub fn play(buffer: []u8, offset: *f64, params: SoundParams, tracks: []types.Tra
         try innerLoop(sliced_buff, offset, params, allocator);
     }
 
-    // try bufferToCSV(buffer);
+    try bufferToCSV(buffer);
     return;
 }
 
