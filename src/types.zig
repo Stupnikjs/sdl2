@@ -30,19 +30,18 @@ pub const SoundParams = struct {
 
 
 pub const PlayMap = struct {
-    instruments: []Instrument,
-    lens: []u8,
-    notes: []f64,
+    instruments: std.ArrayList(Instrument),
+    lens: std.ArrayList(u8),
+    notes: std.ArrayList(f64),
     allocator: std.mem.Allocator, 
      
-    pub fn 
+    pub fn init(allocator: std.mem.Allocator) *PlayMap {
+        return .{
+        .instrument = std.ArrayList(Instrument).init(allocator), 
+        .lens = std.ArrayList(u8).init(allocator), 
+        .notes = std.ArrayList(f64).init(allocator), 
+        .allocator = allocator, 
+    }
 }
 
-pub const Step = struct {
-    instrument: Instrument, 
-    len: u8, 
-    note:f64,
-    
 
-
-}
