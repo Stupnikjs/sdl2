@@ -63,35 +63,44 @@ pub fn InitSpec(sr: usize, samples: u16) SDL.SDL_AudioSpec {
 pub fn PlayAudio(params: SoundParams) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
     defer SDL.SDL_Quit();
+
+
     var audio_len_float: f64 = @floatFromInt(params.sr * sample_byte_num);
     audio_len_float *= sec_len;
+    std.debug.print(" total chunks number {d} \n", .{audio_len_float/params.chunk_size}
     audio_len = @intFromFloat(audio_len_float);
-    const allocator = std.heap.page_allocator;
+
+
     var audioSpec = InitSpec(params.sr, 1024);
+
+
+    const allocator = std.heap.page_allocator;
     const buffer = try allocator.alloc(u8, audio_len);
     audio_pos = buffer.ptr;
+
 
     const sin_offset: *f64 = try allocator.create(f64);
     sin_offset.* = 0;
     defer allocator.destroy(sin_offset);
 
-    const map:PlayMap = PlayMap.init(); 
 
+    const map:PlayMap = PlayMap.init(); 
     try playMap(buffer, sin_offset, params, map, allocator);
 
+
     _ = SDL.SDL_OpenAudio(&audioSpec, null);
-
     SDL.SDL_PauseAudio(0);
-
     while (audio_len > 1000) {
         SDL.SDL_Delay(1000);
     }
+
 
     if (audio_len == 0) {
         SDL.SDL_CloseAudio();
         allocator.free(buffer);
         _ = SDL.SDL_Quit();
     }
+
 }
 // a slice is a pointer
 // buffer to big
