@@ -13,10 +13,15 @@ pub const Instrument = enum {
 };
 
 pub fn play(buffer: []u8, offset: *f64, params: SoundParams, tracks: []types.Track, allocator: std.mem.Allocator) !void {
+    // try to build a buffer of same len 
+    // const buf_cop = try allocator.alloc(u8, buffer.len) 
+
     if (@mod(buffer.len, tracks[0].seq.len) != 0) return types.bufferError.invalidLength;
 
     const buffer_chunk_num: usize = tracks[0].seq.len;
 
+    // crunching at buffer 
+    // chunking the buffer this way doesnt work
     for (0..buffer_chunk_num) |i| {
         const sliced_buff = buffer[i * buffer.len / buffer_chunk_num .. (i + 1) * buffer.len / buffer_chunk_num];
         try innerLoop(sliced_buff, offset, params, allocator);
