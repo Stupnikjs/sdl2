@@ -33,13 +33,13 @@ fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) 
 
     const audio_cast: [*c]u8 = @ptrCast(audio_pos);
 
-    //const limit: f64 = 8000 * sec_len;
-    //const limit_usize: usize = @intFromFloat(limit);
-    //if (audio_len < limit_usize) {
-    //    _ = SDL.SDL_memset(stream, 0, length); // Copy audio data to stream
-    //    audio_len = 0;
-    //    return;
-    //}
+    const limit: f64 = 8000 * sec_len;
+    const limit_usize: usize = @intFromFloat(limit);
+    if (audio_len < limit_usize) {
+        _ = SDL.SDL_memset(stream, 0, length); // Copy audio data to stream
+        audio_len = 0;
+        return;
+    }
     _ = SDL.SDL_memcpy(stream, audio_cast, length); // Copy audio data to stream
     audio_pos.? += length;
     audio_len -= length;
