@@ -8,6 +8,8 @@ const SoundParams = types.SoundParams;
 const effect = @import("effect.zig");
 const types = @import("types.zig");
 const Track = types.Track;
+const Note = types.Note;
+const tone = @import("tone.zig"); 
 const bufferError = types.bufferError;
 
 const SDL = @cImport({
@@ -88,7 +90,9 @@ pub fn PlayAudio(params: SoundParams) !void {
 
     // need to create a buffer
     var tracks: []Track = try allocator.alloc(Track, 1);
-    const seq: []const Instrument = &[_]Instrument{ Instrument.sinWave, Instrument.squareWave, Instrument.silence, Instrument.squareWave, Instrument.sinWave, Instrument.silence, Instrument.sinWave };
+    const sinA: Note = Note.init(.sinWave, 440); 
+    const squareB: Note = Note.init(.squareWave, ) 
+    const seq: []const Note = &[_]Note{ Instrument.sinWave, Instrument.squareWave, Instrument.silence, Instrument.squareWave, Instrument.sinWave, Instrument.silence, Instrument.sinWave };
     tracks[0] = Track.init(effect.Effect.fade, seq);
 
     try play(buffer, sin_offset, params, tracks);

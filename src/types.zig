@@ -33,12 +33,24 @@ pub const SoundParams = struct {
 
 pub const Track = struct {
     effect: Effect, // change it to array of effect
-    seq: []const Instrument,
+    seq: []const Note,
 
-    pub fn init(effect: Effect, seq: []const Instrument) Track {
+    pub fn init(effect: Effect, seq: []const Note) Track {
         return .{
             .effect = effect,
             .seq = seq,
+        };
+    }
+};
+
+pub const Note = struct {
+    instrument: Instrument,
+    note: f64,
+
+    pub fn init(in: Instrument, note: f64) Note {
+        return .{
+            .instrument = in,
+            .note = note,
         };
     }
 };
