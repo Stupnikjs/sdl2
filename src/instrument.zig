@@ -30,7 +30,7 @@ pub fn play(buffer: []u8, offset: *f64, params: SoundParams, tracks: []types.Tra
     return;
 }
 
-pub fn innerLoop(buffer: []u8, instrument: Instrument, offset: *f64, params: SoundParams) !void {
+pub fn innerLoop(buffer: []u8, note: types.Note, offset: *f64, params: SoundParams) !void {
     const allocator = params.allocator;
     const iter_num_usize = buffer.len / params.chunk_len;
     const chunk_size: usize = @intCast(params.chunk_len);
@@ -49,11 +49,11 @@ pub fn innerLoop(buffer: []u8, instrument: Instrument, offset: *f64, params: Sou
             allocator.free(buff);
         }
     }
-    const buff = try InstrumentToBuff(instrument, mod, offset, params);
+    const buff = try InstrumentToBuff( , mod, offset, params);
     @memcpy(buffer[iter_num_usize * chunk_size .. iter_num_usize * chunk_size + mod], buff);
 }
 
-pub fn InstrumentToBuff(instrument: Instrument, buffer_len: usize, sin_offset: *f64, params: SoundParams) ![]u8 {
+pub fn InstrumentToBuff(note: types.Note, buffer_len: usize, sin_offset: *f64, params: SoundParams) ![]u8 {
     const allocator = params.allocator;
     const buff = try allocator.alloc(u8, buffer_len);
     const sr_f64: f64 = @floatFromInt(params.sr);
@@ -61,10 +61,10 @@ pub fn InstrumentToBuff(instrument: Instrument, buffer_len: usize, sin_offset: *
     for (0..buffer_len / 2) |i| {
 
         // get the value and increment the offset
-        const val: f64 = switch (instrument) {
-            Instrument.sinWave => sinFunc(sin_offset, params.frequency, sr_f64),
-            Instrument.squareWave => squareFunc(sin_offset, params.frequency, sr_f64),
-            Instrument.silence => silenceFunc(sin_offset, params.frequency, sr_f64),
+        const val: f64 = switch (note.instrument) {
+            Instrument.sinWave => sinFunc(sin_offset, note.note, sr_f64),
+            Instrument.squareWave => squareFunc(sin_offset, note.note, sr_f64),
+            Instrument.silence => silenceFunc(sin_offset, note.note, sr_f64),
             else => return error.invalidLength,
         };
         const int16: i16 = @intFromFloat(val * params.amplitude);
