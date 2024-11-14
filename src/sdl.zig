@@ -87,8 +87,11 @@ pub fn PlayAudio(params: SoundParams) !void {
     defer allocator.destroy(sin_offset);
 
     // need to create a buffer
-    const tracks: []Track =
-        try play(buffer, sin_offset, params, tracks, allocator);
+    var tracks: []Track = try allocator.alloc(Track, 1);
+    const seq = [_]bool{ true, false, true, false };
+    tracks[0] = Track.init(Instrument.sinWave, effect.Effect.fade, seq[0..]);
+
+    try play(buffer, sin_offset, params, tracks, allocator);
 
     _ = SDL.SDL_OpenAudio(&audioSpec, null);
 
