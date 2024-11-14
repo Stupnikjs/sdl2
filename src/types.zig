@@ -19,24 +19,24 @@ pub const SoundParams = struct {
     frequency: f64,
     chunk_len: u16,
     amplitude: f64,
-    pub fn init(sr: usize, frequency: f64, chunk_len: u16) SoundParams {
+    allocator: std.mem.Allocator,
+    pub fn init(sr: usize, frequency: f64, chunk_len: u16, allocator: std.mem.Allocator) SoundParams {
         return .{
             .sr = sr,
             .frequency = frequency,
             .chunk_len = chunk_len,
             .amplitude = 10000,
+            .allocator = allocator,
         };
     }
 };
 
 pub const Track = struct {
-    instrument: Instrument,
     effect: Effect, // change it to array of effect
-    seq: []const bool,
+    seq: []const Instrument,
 
-    pub fn init(instrument: Instrument, effect: Effect, seq: []const bool) Track {
+    pub fn init(effect: Effect, seq: []const Instrument) Track {
         return .{
-            .instrument = instrument,
             .effect = effect,
             .seq = seq,
         };
