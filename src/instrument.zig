@@ -18,9 +18,6 @@ pub fn play(buffer: []u8, offset: *f64, params: SoundParams, tracks: []types.Tra
 
     const buffer_chunk_num: usize = tracks[0].seq.len;
 
-    // crunching at buffer
-    // chunking the buffer this way doesnt work
-    // why clicking here but not in inner loop
     for (0..buffer_chunk_num) |i| {
         const sliced_buff = buffer[i * buffer.len / buffer_chunk_num .. (i + 1) * buffer.len / buffer_chunk_num];
         try innerLoop(sliced_buff, tracks[0].seq[i], offset, params);
@@ -42,14 +39,14 @@ pub fn innerLoop(buffer: []u8, note: types.Note, offset: *f64, params: SoundPara
             // pass the note also
             // need intrument and effect in some struct
 
-            const buff = try InstrumentToBuff(instrument, params.chunk_len, offset, params);
+            const buff = try InstrumentToBuff(note, params.chunk_len, offset, params);
 
             // copy intermediate buffer to main one
             @memcpy(buffer[i * chunk_size .. i * chunk_size + chunk_size], buff);
             allocator.free(buff);
         }
     }
-    const buff = try InstrumentToBuff( , mod, offset, params);
+    const buff = try InstrumentToBuff(note, mod, offset, params);
     @memcpy(buffer[iter_num_usize * chunk_size .. iter_num_usize * chunk_size + mod], buff);
 }
 
