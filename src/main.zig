@@ -10,6 +10,6 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     const in = try input.parseInput(allocator);
-    std.debug.print(":> input {s}", .{in});
-    std.debug.print(":> input  \n", .{});
+    const arrNote = try input.inputToNote(in, allocator, 440);
+    std.debug.print(":> input {any}", .{arrNote});
 }
