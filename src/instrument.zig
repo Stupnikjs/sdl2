@@ -13,15 +13,15 @@ pub const Instrument = enum {
 };
 
 pub fn play(buffer: []u8, offset: *f64, params: SoundParams, tracks: []types.Track, allocator: std.mem.Allocator) !void {
-    // try to build a buffer of same len 
-    // const buf_cop = try allocator.alloc(u8, buffer.len) 
+    // try to build a buffer of same len
 
     if (@mod(buffer.len, tracks[0].seq.len) != 0) return types.bufferError.invalidLength;
 
     const buffer_chunk_num: usize = tracks[0].seq.len;
 
-    // crunching at buffer 
+    // crunching at buffer
     // chunking the buffer this way doesnt work
+    // why clicking here but not in inner loop
     for (0..buffer_chunk_num) |i| {
         const sliced_buff = buffer[i * buffer.len / buffer_chunk_num .. (i + 1) * buffer.len / buffer_chunk_num];
         try innerLoop(sliced_buff, offset, params, allocator);
@@ -32,10 +32,13 @@ pub fn play(buffer: []u8, offset: *f64, params: SoundParams, tracks: []types.Tra
 }
 
 pub fn innerLoop(buffer: []u8, offset: *f64, params: SoundParams, allocator: std.mem.Allocator) !void {
+    std.debug.print("iter_num chunklen {d} {d} \n", .{ buffer.len, params.chunk_len });
     const iter_num_usize = buffer.len / params.chunk_len;
     const chunk_size: usize = @intCast(params.chunk_len);
+    // need one more iteration for the rest of the chunk
+    const mod = @mod(buffer.len, chunk_size);
+
     for (0..iter_num_usize) |i| {
-        // loop over (map.instruments,0..map.len)
         if (i != iter_num_usize) {
             // pass the note also
             // need intrument and effect in some struct
@@ -47,6 +50,8 @@ pub fn innerLoop(buffer: []u8, offset: *f64, params: SoundParams, allocator: std
             allocator.free(buff);
         }
     }
+    const buff = try InstrumentToBuff(Instrument.sinWave, mod, offset, params, allocator);
+    @memcpy(buffer[iter_num_usize * chunk_size .. iter_num_usize * chunk_size + mod], buff);
 }
 
 pub fn InstrumentToBuff(instrument: Instrument, buffer_len: usize, sin_offset: *f64, params: SoundParams, allocator: std.mem.Allocator) ![]u8 {

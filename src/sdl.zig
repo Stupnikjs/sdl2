@@ -33,7 +33,6 @@ fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) 
 
     const audio_cast: [*c]u8 = @ptrCast(audio_pos);
 
-<<<<<<< HEAD
     const limit: f64 = 4000 * sec_len;
     const limit_usize: usize = @intFromFloat(limit);
     if (audio_len < limit_usize) {
@@ -41,7 +40,6 @@ fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) 
         audio_len = 0;
         return;
     }
-=======
     //const limit: f64 = 8000 * sec_len;
     //const limit_usize: usize = @intFromFloat(limit);
     //if (audio_len < limit_usize) {
@@ -49,7 +47,6 @@ fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) 
     //    audio_len = 0;
     //    return;
     //}
->>>>>>> parent of 24df3bf (ok)
     _ = SDL.SDL_memcpy(stream, audio_cast, length); // Copy audio data to stream
     audio_pos.? += length;
     audio_len -= length;
@@ -90,8 +87,8 @@ pub fn PlayAudio(params: SoundParams) !void {
     defer allocator.destroy(sin_offset);
 
     // need to create a buffer
-
-    try playInstrument(buffer, sin_offset, params, Instrument.squareWave, allocator);
+    const tracks: []Track =
+        try play(buffer, sin_offset, params, tracks, allocator);
 
     _ = SDL.SDL_OpenAudio(&audioSpec, null);
 
