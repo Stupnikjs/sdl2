@@ -33,7 +33,7 @@ fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) 
 
     const audio_cast: [*c]u8 = @ptrCast(audio_pos);
 
-    const limit: f64 = 8000 * sec_len;
+    const limit: f64 = 4000 * sec_len;
     const limit_usize: usize = @intFromFloat(limit);
     if (audio_len < limit_usize) {
         _ = SDL.SDL_memset(stream, 0, length); // Copy audio data to stream
@@ -56,6 +56,7 @@ pub fn InitSpec(sr: usize, samples: u16) SDL.SDL_AudioSpec {
         .freq = sr_c,
         .format = SDL.AUDIO_S16,
         .channels = 1,
+        // chunk size read by the callback
         .samples = samples,
         .callback = my_audio_callback,
         .userdata = null,
@@ -65,31 +66,27 @@ pub fn InitSpec(sr: usize, samples: u16) SDL.SDL_AudioSpec {
 pub fn PlayAudio(params: SoundParams) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
     defer SDL.SDL_Quit();
-
     var audio_len_float: f64 = @floatFromInt(params.sr * sample_byte_num);
     audio_len_float *= sec_len;
-    const float_chunk_len: f64 = @floatFromInt(params.chunk_len);
-    std.debug.print(" total chunks number {d} \n", .{audio_len_float / float_chunk_len});
     audio_len = @intFromFloat(audio_len_float);
-
-    var audioSpec = InitSpec(params.sr, 1024);
-
     const allocator = std.heap.page_allocator;
-    const buffer = try allocator.alloc(u8, audio_len);
+    var audioSpec = InitSpec(params.sr, 1024);
+    const buffer = try allocator.alloc(u8, audio_len * sample_byte_num);
     audio_pos = buffer.ptr;
 
+    // sin_offset passed from each buffers
     const sin_offset: *f64 = try allocator.create(f64);
     sin_offset.* = 0;
     defer allocator.destroy(sin_offset);
 
-    var tracks: []Track = try allocator.alloc(Track, 1);
-    const seq = [_]bool{ true, false, false, true };
-    tracks[0] = Track.init(Instrument.sinWave, effect.Effect.fade, seq[0..]);
+    // need to create a buffer
 
-    try play(buffer, sin_offset, params, tracks, allocator);
+    try playInstrument(buffer, sin_offset, params, Instrument.squareWave, allocator);
 
     _ = SDL.SDL_OpenAudio(&audioSpec, null);
+
     SDL.SDL_PauseAudio(0);
+
     while (audio_len > 1000) {
         SDL.SDL_Delay(1000);
     }
