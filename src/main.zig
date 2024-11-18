@@ -12,7 +12,7 @@ pub fn main() !void {
     const allocator = gpa.allocator();
     const in = try input.parseInput(allocator);
     const arrNote = try input.inputToNote(in, allocator, 440);
-    const params = types.SoundParams; 
+    const params = SoundParams.init(); 
   
     try sdl.PlayAudio(, arrNote)
 
