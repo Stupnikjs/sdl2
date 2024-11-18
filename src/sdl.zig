@@ -72,7 +72,7 @@ pub fn InitSpec(sr: usize, samples: u16) SDL.SDL_AudioSpec {
     };
 }
 
-pub fn PlayAudio(params: SoundParams) !void {
+pub fn PlayAudio(params: SoundParams, seq: []Note) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
     defer SDL.SDL_Quit();
     var audio_len_float: f64 = @floatFromInt(params.sr * sample_byte_num);
@@ -90,9 +90,6 @@ pub fn PlayAudio(params: SoundParams) !void {
 
     // need to create a buffer
     var tracks: []Track = try allocator.alloc(Track, 1);
-    const sinA: Note = Note.init(.sinWave, 440);
-    const squareB: Note = Note.init(.squareWave, tone.getNoteFactor(440, 2));
-    const seq: []const Note = &[_]Note{ sinA, squareB };
     tracks[0] = Track.init(effect.Effect.fade, seq);
 
     try play(buffer, sin_offset, params, tracks);
