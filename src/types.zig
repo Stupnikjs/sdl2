@@ -8,7 +8,6 @@ const api = @import("sdl.zig");
 const types = @import("types.zig");
 const pow = math.pow;
 
-
 pub const bufferError = error{
     invalidLength,
 };
@@ -21,14 +20,12 @@ pub fn intToBytes(T: type, source: T) []u8 {
 
 pub const SoundParams = struct {
     sr: usize,
-    frequency: f64,
     chunk_len: u16,
     amplitude: f64,
     allocator: std.mem.Allocator,
-    pub fn init(sr: usize, frequency: f64, chunk_len: u16, allocator: std.mem.Allocator) SoundParams {
+    pub fn init(sr: usize, chunk_len: u16, allocator: std.mem.Allocator) SoundParams {
         return .{
             .sr = sr,
-            .frequency = frequency,
             .chunk_len = chunk_len,
             .amplitude = 10000,
             .allocator = allocator,
@@ -59,8 +56,6 @@ pub const Note = struct {
         };
     }
 };
-
-
 
 pub const NoteLetter = enum {
     A,

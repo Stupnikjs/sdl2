@@ -3,7 +3,7 @@ const types = @import("types.zig");
 const effect = @import("effect.zig");
 const SoundParams = types.SoundParams;
 const math = std.math;
-const bufferToCSV = @import("csv.zig").bufferToCSV;
+const bufferError = types.bufferError;
 const tobytes = types.intToBytes;
 
 pub const Instrument = enum {
@@ -61,8 +61,8 @@ pub fn InstrumentToBuff(note: types.Note, buffer_len: usize, sin_offset: *f64, p
         const val: f64 = switch (note.instrument) {
             Instrument.sinWave => sinFunc(sin_offset, note.note, sr_f64),
             Instrument.squareWave => squareFunc(sin_offset, note.note, sr_f64),
+            Instrument.triangleWave => triangleFunc(sin_offset, note.note, sr_f64),
             Instrument.silence => silenceFunc(sin_offset, note.note, sr_f64),
-            else => return error.invalidLength,
         };
         const int16: i16 = @intFromFloat(val * params.amplitude);
         const bytes = tobytes(i16, int16);
@@ -95,4 +95,33 @@ pub fn silenceFunc(offset: *f64, note: f64, sr_f64: f64) f64 {
     return 0;
 }
 
-// pub fn triangleFunc(offset: *f64, note: f64, sr_f64: f64) f64 {}
+pub fn triangleFunc(offset: *f64, note: f64, sr_f64: f64) f64 {
+    const phase_increment: f64 = note / sr_f64;
+
+    // Update the phase and wrap between 0.0 and 1.0
+    offset.* = (@mod(offset.* + phase_increment, 1.0));
+
+    const phase = 2.0 * offset.* - 1.0;
+    return if (phase < 0.0) -phase else phase;
+}
+
+// Convert to CSV
+
+pub fn bufferToCSV(buffer: []u8) !void {
+    if (buffer.len % 2 != 0) return bufferError.invalidLength;
+    const file = try std.fs.cwd().createFile("buf.csv", .{});
+
+    for (0..buffer.len / 2) |i| {
+        const first = buffer[i * 2];
+        const sec = buffer[i * 2 + 1];
+        const buff: [2]u8 = [2]u8{ first, sec };
+        const sample: i16 = std.mem.bytesToValue(i16, &buff);
+        var intStr: [6]u8 = undefined;
+        _ = try std.fmt.bufPrint(&intStr, "{}", .{sample});
+        _ = try file.write(&intStr);
+        const space: [1]u8 = [1]u8{'\n'};
+        _ = try file.write(&space);
+    }
+
+    file.close();
+}

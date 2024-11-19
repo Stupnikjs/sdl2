@@ -1,7 +1,8 @@
 const std = @import("std");
 const tone = @import("tone.zig");
 const input = @import("input.zig");
-const sdl = @import("sdl.zig"); 
+const sdl = @import("sdl.zig");
+const types = @import("types.zig");
 const SoundParams = types.SoundParams;
 // each track has a sequence
 // u select instruments
@@ -10,11 +11,11 @@ const SoundParams = types.SoundParams;
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
-    const in = try input.parseInput(allocator);
-    const arrNote = try input.inputToNote(in, allocator, 440);
-    const params = SoundParams.init(); 
-  
-    try sdl.PlayAudio(, arrNote)
-
-    
+    var in = try input.parseInput(allocator);
+    while (true) {
+        const arrNote = try input.inputToNote(in, allocator, 440);
+        const params = SoundParams.init(44100, 1024, allocator);
+        try sdl.PlayAudio(params, arrNote);
+        in = try input.parseInput(allocator);
+    }
 }
