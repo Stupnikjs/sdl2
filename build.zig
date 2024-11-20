@@ -30,13 +30,24 @@ pub fn build(b: *std.Build) void {
         // The SDL package doesn't work for Linux yet, so we rely on system
         // packages for now.
         exe.linkSystemLibrary("SDL2");
+        exe.linkSystemLibrary("raylib");
         exe.linkLibC();
     } else {
         const sdl_dep = b.dependency("SDL", .{
             .optimize = .ReleaseFast,
             .target = target,
         });
+        const raylib_optimize = b.option(
+            std.builtin.OptimizeMode,
+            "raylib-optimize",
+            "Prioritize performance, safety, or binary size (-O flag), defaults to value of optimize option",
+        ) orelse optimize;
+        const ray_dep = b.dependency("raylib", .{
+            .optimize = raylib_optimize,
+            .target = target,
+        });
         exe.linkLibrary(sdl_dep.artifact("SDL2"));
+        exe.linkLibrary(ray_dep.artifact("raylib"));
     }
     exe.linkLibC();
     b.installArtifact(exe);

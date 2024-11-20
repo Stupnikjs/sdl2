@@ -9,7 +9,6 @@ const effect = @import("effect.zig");
 const types = @import("types.zig");
 const Track = types.Track;
 const Note = types.Note;
-const tone = @import("tone.zig");
 const bufferError = types.bufferError;
 
 const SDL = @cImport({

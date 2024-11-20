@@ -27,6 +27,10 @@
             .url = "https://github.com/pwbh/SDL/archive/refs/tags/release-2.30.5.tar.gz",
             .hash = "1220329749b6f64dedb802a91dfaff8e68ed3f0dde744514da30ba90cdb66359c897",
         },
+        .raylib = .{
+            .url = "https://github.com/raysan5/raylib/archive/52f2a10db610d0e9f619fd7c521db08a876547d0.tar.gz",
+            .hash = "122078ad3e79fb83b45b04bd30fb63aaf936c6774db60095bc6987d325cbe5743373",
+        },
     },
     .paths = .{
         "build.zig",

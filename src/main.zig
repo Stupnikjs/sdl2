@@ -1,14 +1,18 @@
 const std = @import("std");
-const tone = @import("tone.zig");
 const input = @import("input.zig");
 const sdl = @import("sdl.zig");
 const types = @import("types.zig");
 const SoundParams = types.SoundParams;
+
 // each track has a sequence
 // u select instruments
 // each instruments can have effect
 
 pub fn main() !void {
+    // try ray_main();
+}
+
+fn cli_note() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     var in = try input.parseInput(allocator);
