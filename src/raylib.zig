@@ -3,9 +3,10 @@ const ray = @cImport({
     @cInclude("raymath.h");
     @cInclude("rlgl.h");
 });
+
 const std = @import("std");
-const y_rect: c_int = 200;
-const rect_width: c_int = 50;
+const rect_y: c_int = 200;
+const rect_width: c_int = 100;
 const rect_heigth: c_int = 50;
 
 pub fn ray_main() !void {
@@ -57,11 +58,7 @@ pub fn ray_main() !void {
             // if (hint) ray.DrawText("press up or down arrow to change background color", 120, 140, 20, ray.BLUE);
             // ray.DrawText("Congrats! You created your first window!", 190, 200, 20, ray.BLACK);
 
-            ray.DrawRectangle(10, y_rect, rect_width, rect_heigth, ray.PURPLE);
-            ray.DrawRectangle(20, y_rect, rect_width, rect_heigth, ray.PURPLE);
-            ray.DrawRectangle(60, y_rect, rect_width, rect_heigth, ray.PURPLE);
-            ray.DrawRectangle(110, y_rect, rect_width, rect_heigth, ray.PURPLE);
-            ray.DrawRectangle(10, y_rect, rect_width, rect_heigth, ray.PURPLE);
+            RectangleBuilder(5);
 
             // now lets use an allocator to create some dynamic text
             // pay attention to the Z in `allocPrintZ` that is a convention
@@ -93,6 +90,6 @@ fn hints() !void {
 pub fn RectangleBuilder(n: usize) void {
     for (0..n) |i| {
         const x: c_int = @intCast(i);
-        ray.DrawRectangle(x + 10, y_rect, rect_width, rect_heigth, ray.PURPLE);
+        ray.DrawRectangle(x * rect_width, rect_y, rect_width / 2, rect_heigth, ray.PURPLE);
     }
 }
