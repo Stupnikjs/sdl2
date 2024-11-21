@@ -15,6 +15,8 @@ const SDL = @cImport({
     @cInclude("SDL2/SDL.h");
 });
 
+// change Matrix name space conflicting with raylib here
+
 const maxU16: usize = @as(usize, math.maxInt(u16));
 
 pub var audio_pos: ?[*]u8 = null; // Pointer to the audio buffer.

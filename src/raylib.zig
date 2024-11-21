@@ -58,7 +58,17 @@ pub fn ray_main() !void {
             // if (hint) ray.DrawText("press up or down arrow to change background color", 120, 140, 20, ray.BLUE);
             // ray.DrawText("Congrats! You created your first window!", 190, 200, 20, ray.BLACK);
 
-            RectangleBuilder(5);
+            const mousePoint = ray.GetMousePosition();
+            const rect = ray.Rectangle{
+                .x = 100,
+                .y = 100,
+                .height = 100,
+                .width = 100,
+            };
+            ray.DrawRectangleRec(rect, ray.VIOLET);
+            if (ray.CheckCollisionPointRec(mousePoint, rect)) {
+                std.debug.print("hello \n", .{});
+            }
 
             // now lets use an allocator to create some dynamic text
             // pay attention to the Z in `allocPrintZ` that is a convention
