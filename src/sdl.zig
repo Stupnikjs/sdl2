@@ -11,7 +11,7 @@ const Track = types.Track;
 const Note = types.Note;
 const bufferError = types.bufferError;
 
-const SDL = @cImport({
+pub const SDL = @cImport({
     @cInclude("SDL2/SDL.h");
 });
 
