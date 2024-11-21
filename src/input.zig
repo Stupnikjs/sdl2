@@ -6,11 +6,8 @@ const Note = types.Note;
 
 pub fn parseInput(allocator: std.mem.Allocator) ![]u8 {
     const input_buf: []u8 = try allocator.alloc(u8, 1024);
-
     const input = std.io.getStdIn().reader();
-
     const read_len = try input.read(input_buf);
-
     return input_buf[0..read_len];
 }
 

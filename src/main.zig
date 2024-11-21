@@ -3,13 +3,12 @@ const input = @import("input.zig");
 const sdl = @import("sdl.zig");
 const types = @import("types.zig");
 const SoundParams = types.SoundParams;
-
-// each track has a sequence
+const ray = @import("raylib.zig"); // each track has a sequence
 // u select instruments
 // each instruments can have effect
 
 pub fn main() !void {
-    // try ray_main();
+    try ray.ray_main();
 }
 
 fn cli_note() !void {
