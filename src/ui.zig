@@ -70,6 +70,7 @@ pub fn uiWrapper(buff: []u8) !void {
         var event: SDL.SDL_Event = undefined;
         // Handle events
         while (SDL.SDL_PollEvent(&event) != 0) {
+            std.debug.print("event {d}", .{});
             switch (event.common.type) {
                 SDL.SDL_QUIT => exit = true,
                 SDL.SDL_MOUSEBUTTONDOWN => {
@@ -78,9 +79,7 @@ pub fn uiWrapper(buff: []u8) !void {
                         try PlayBuffer(buff, params);
                     }
                 },
-                else => {
-                    std.debug.print("is called", .{});
-                },
+                else => {},
             }
         }
     }
