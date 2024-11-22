@@ -5,13 +5,7 @@ const SoundParams = types.SoundParams;
 const math = std.math;
 const bufferError = types.bufferError;
 const tobytes = types.intToBytes;
-
-pub const Instrument = enum {
-    sinWave,
-    squareWave,
-    triangleWave,
-    silence,
-};
+const Instrument = types.Instrument;
 
 pub fn play(buffer: []u8, offset: *f64, params: SoundParams, tracks: []types.Track) !void {
     if (@mod(buffer.len, tracks[0].seq.len) != 0) return types.bufferError.invalidLength;

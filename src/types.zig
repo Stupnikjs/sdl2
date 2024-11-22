@@ -1,6 +1,5 @@
 const std = @import("std");
 const builtin = @import("builtin");
-const Instrument = @import("instrument.zig").Instrument;
 const Effect = @import("effect.zig").Effect;
 const math = std.math;
 const tobytes = @import("types.zig").intToBytes;
@@ -10,6 +9,13 @@ const pow = math.pow;
 
 pub const bufferError = error{
     invalidLength,
+};
+
+pub const Instrument = enum {
+    sinWave,
+    squareWave,
+    triangleWave,
+    silence,
 };
 
 pub fn intToBytes(T: type, source: T) []u8 {
