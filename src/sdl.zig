@@ -73,18 +73,11 @@ pub fn InitSpec(sr: usize, samples: u16) SDL.SDL_AudioSpec {
     };
 }
 
-pub fn PlayAudio(params: SoundParams, seq: []Note) !void {
-    if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
-    defer SDL.SDL_Quit();
-    var audio_len_float: f64 = @floatFromInt(params.sr * sample_byte_num);
-    audio_len_float *= sec_len;
-    audio_len = @intFromFloat(audio_len_float);
-    const allocator = std.heap.page_allocator;
-    var audioSpec = InitSpec(params.sr, 1024);
-    const buffer = try allocator.alloc(u8, audio_len * sample_byte_num);
-    audio_pos = buffer.ptr;
-
+pub fn buildBuffer(params: SoundParams, seq: []Note) ![]u8 {
     // sin_offset passed from each buffers
+    var allocator = params.allocator;
+    // const buffer = try allocator.alloc(u8, audio_len * sample_byte_num);
+    const buffer: []u8 = try allocator.alloc(u8, params.sr);
     const sin_offset: *f64 = try allocator.create(f64);
     sin_offset.* = 0;
     defer allocator.destroy(sin_offset);
@@ -94,6 +87,19 @@ pub fn PlayAudio(params: SoundParams, seq: []Note) !void {
     tracks[0] = Track.init(effect.Effect.fade, seq);
 
     try play(buffer, sin_offset, params, tracks);
+    return buffer;
+}
+
+pub fn PlayAudio(buffer: []u8, params: SoundParams) !void {
+    if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
+    defer SDL.SDL_Quit();
+    var audio_len_float: f64 = @floatFromInt(params.sr * sample_byte_num);
+    audio_len_float *= sec_len;
+    audio_len = @intFromFloat(audio_len_float);
+    const allocator = std.heap.page_allocator;
+    var audioSpec = InitSpec(params.sr, 1024);
+    // const buffer = try allocator.alloc(u8, audio_len * sample_byte_num);
+    audio_pos = buffer.ptr;
 
     _ = SDL.SDL_OpenAudio(&audioSpec, null);
 
