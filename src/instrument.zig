@@ -7,11 +7,10 @@ const bufferError = types.bufferError;
 const tobytes = types.intToBytes;
 const Instrument = types.Instrument;
 
+// pass buffer and fill it with sound
 pub fn play(buffer: []u8, offset: *f64, params: SoundParams, tracks: []types.Track) !void {
     if (@mod(buffer.len, tracks[0].seq.len) != 0) return types.bufferError.invalidLength;
-
     const buffer_chunk_num: usize = tracks[0].seq.len;
-
     for (0..buffer_chunk_num) |i| {
         const sliced_buff = buffer[i * buffer.len / buffer_chunk_num .. (i + 1) * buffer.len / buffer_chunk_num];
         try innerLoop(sliced_buff, tracks[0].seq[i], offset, params);

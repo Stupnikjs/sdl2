@@ -1,7 +1,7 @@
 const std = @import("std");
 const SDL = @import("sdl.zig").SDL;
 const types = @import("types.zig");
-const PlayAudio = @import("sdl.zig").PlayAudio;
+const PlayBuffer = @import("sdl.zig").PlayBuffer;
 
 const rec_size: c_int = 50;
 const window_width: c_int = 500;
@@ -25,7 +25,7 @@ pub fn getRgbFromColor(color: Color) [4]u8 {
     }
 }
 
-pub fn uiWrapper() !void {
+pub fn uiWrapper(buff: []u8) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) != 0) {
         return error.SDLInitFailed;
     }
@@ -65,32 +65,26 @@ pub fn uiWrapper() !void {
     try buildRec(renderer.?, rect, Color.yellow);
     // Render the yellow rectangle
     SDL.SDL_RenderPresent(renderer);
-
-    while (true) {
+    var exit = false;
+    while (!exit) {
         var event: SDL.SDL_Event = undefined;
-
         // Handle events
         while (SDL.SDL_PollEvent(&event) != 0) {
             switch (event.common.type) {
-                SDL.SDL_QUIT => break,
+                SDL.SDL_QUIT => exit = true,
                 SDL.SDL_MOUSEBUTTONDOWN => {
                     if (isMouseInRect(event.button.x, event.button.y, rect)) {
-                        const Asin: types.Note = types.Note.init(types.Instrument.sinWave, 440);
-                        var seq = [1]types.Note{Asin};
                         const params = types.SoundParams.init(44100, 1024, std.heap.page_allocator);
-                        try PlayAudio(params, seq[0..]);
-                        std.debug.print("here", .{});
+                        try PlayBuffer(buff, params);
                     }
                 },
-                else => {},
+                else => {
+                    std.debug.print("is called", .{});
+                },
             }
         }
     }
-
-    // Present the rendered content
-
     defer SDL.SDL_DestroyRenderer(renderer);
-
     // Wait before exiting
     std.time.sleep(10 * std.time.ns_per_s);
 }
