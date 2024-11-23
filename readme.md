@@ -1,10 +1,19 @@
 # GENERATE WAV FILE BASED ON THE PATERN CHOSED 
 
+ 
+
+
 # CONVERT BUFFER TO WAV 
 
+ convert any buffer to wav file 
+
 # CONVERT SEQUENCE OF INSTRUMENTS TO BUFFER 
+
+
 
 # COMBINE INSTRUMENTS 
 
 # LOAD WAV FILE TO BUFFER 
+
+ read wav file to buffer 
 
