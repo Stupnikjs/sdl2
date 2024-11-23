@@ -1,20 +1,3 @@
-GENERATE WAV FILE BASED ON THE PATERN CHOSED 
-
- 
-
-
-CONVERT BUFFER TO WAV 
-
-convert any buffer to wav file 
-
-CONVERT SEQUENCE OF INSTRUMENTS TO BUFFER 
-
-
-COMBINE INSTRUMENTS 
-
-LOAD WAV FILE TO BUFFER 
-
-read wav file to buffer 
 
 Positions   Sample Value         Description
 1 - 4       "RIFF"               Marks the file as a riff file. Characters are each 1. byte long.
@@ -30,3 +13,6 @@ Positions   Sample Value         Description
 35-36       16                   Bits per sample
 37-40       "data"               "data" chunk header. Marks the beginning of the data section.
 41-44       File size (data)     Size of the data section, i.e. file size - 44 bytes header.
+
+
+Build a wav creator func 
