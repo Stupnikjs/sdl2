@@ -2,12 +2,9 @@ const std = @import("std");
 const endian = @import("builtin").cpu.arch.endian();
 const math = std.math;
 const tobytes = @import("types.zig").intToBytes;
-const play = @import("instrument.zig").play;
-const Instrument = @import("instrument.zig").Instrument;
+const play = @import("player.zig").play;
 const SoundParams = types.SoundParams;
-const effect = @import("effect.zig");
 const types = @import("types.zig");
-const Track = types.Track;
 const Note = types.Note;
 const bufferError = types.bufferError;
 
@@ -83,16 +80,14 @@ pub fn buildBuffer(params: SoundParams, seq: []Note) ![]u8 {
     defer allocator.destroy(sin_offset);
 
     // need to create a buffer
-    var tracks: []Track = try allocator.alloc(Track, 1);
-    tracks[0] = Track.init(effect.Effect.fade, seq);
-    try play(buffer, sin_offset, params, tracks);
+    try play(buffer, sin_offset, params, seq);
     return buffer;
 }
 
 // play a buffer
 pub fn PlayBuffer(buffer: []u8, params: SoundParams) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
-    defer SDL.SDL_Quit();
+    // defer SDL.SDL_Quit();
     audio_len = buffer.len;
     const allocator = std.heap.page_allocator;
     var audioSpec = InitSpec(params.sr, 1024);
@@ -105,9 +100,10 @@ pub fn PlayBuffer(buffer: []u8, params: SoundParams) !void {
     }
 
     if (audio_len == 0) {
-        SDL.SDL_CloseAudio();
-        allocator.free(buffer);
-        _ = SDL.SDL_Quit();
+        _ = allocator;
+        // SDL.SDL_CloseAudio();
+        // allocator.free(buffer);
+        // _ = SDL.SDL_Quit();
     }
 }
 // a slice is a pointer

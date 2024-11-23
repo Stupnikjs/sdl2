@@ -1,6 +1,5 @@
 const std = @import("std");
 const builtin = @import("builtin");
-const Effect = @import("effect.zig").Effect;
 const math = std.math;
 const tobytes = @import("types.zig").intToBytes;
 const api = @import("sdl.zig");
@@ -35,18 +34,6 @@ pub const SoundParams = struct {
             .chunk_len = chunk_len,
             .amplitude = 10000,
             .allocator = allocator,
-        };
-    }
-};
-
-pub const Track = struct {
-    effect: Effect, // change it to array of effect
-    seq: []const Note,
-
-    pub fn init(effect: Effect, seq: []const Note) Track {
-        return .{
-            .effect = effect,
-            .seq = seq,
         };
     }
 };

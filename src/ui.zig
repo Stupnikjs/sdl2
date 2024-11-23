@@ -3,10 +3,15 @@ const SDL = @import("sdl.zig").SDL;
 const types = @import("types.zig");
 const PlayBuffer = @import("sdl.zig").PlayBuffer;
 
-const rec_size: c_int = 50;
+const rec_size: c_int = 200;
 const window_width: c_int = 500;
 const window_height: c_int = 500;
 
+pub const ObjectShape = enum {
+    Rectangle,
+    Triangle,
+    Line,
+};
 pub const Color = enum {
     yellow,
     black,
@@ -25,7 +30,7 @@ pub fn getRgbFromColor(color: Color) [4]u8 {
     }
 }
 
-pub fn uiWrapper(buff: []u8) !void {
+pub fn uiWrapper(buffers: [][]u8) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) != 0) {
         return error.SDLInitFailed;
     }
@@ -56,27 +61,40 @@ pub fn uiWrapper(buff: []u8) !void {
     _ = SDL.SDL_RenderClear(renderer);
 
     // Create a rectangle to draw (position x, y, width, height)
-    const rect = SDL.SDL_Rect{
-        .x = rec_size,
-        .y = rec_size,
+    const left_rect = SDL.SDL_Rect{
+        .x = 0,
+        .y = (window_height - rec_size) / 2,
         .w = rec_size,
         .h = rec_size,
     };
-    try buildRec(renderer.?, rect, Color.yellow);
+    const right_rect = SDL.SDL_Rect{
+        .x = window_width / 2,
+        .y = (window_height - rec_size) / 2,
+        .w = rec_size,
+        .h = rec_size,
+    };
+    try buildRec(renderer.?, left_rect, Color.purple);
+
+    try buildRec(renderer.?, right_rect, Color.yellow);
     // Render the yellow rectangle
-    SDL.SDL_RenderPresent(renderer);
     var exit = false;
     while (!exit) {
         var event: SDL.SDL_Event = undefined;
         // Handle events
         while (SDL.SDL_PollEvent(&event) != 0) {
-            std.debug.print("event {d}", .{});
             switch (event.common.type) {
-                SDL.SDL_QUIT => exit = true,
+                SDL.SDL_QUIT => {
+                    exit = true;
+                    break;
+                },
                 SDL.SDL_MOUSEBUTTONDOWN => {
-                    if (isMouseInRect(event.button.x, event.button.y, rect)) {
+                    if (isMouseInRect(event.button.x, event.button.y, right_rect)) {
                         const params = types.SoundParams.init(44100, 1024, std.heap.page_allocator);
-                        try PlayBuffer(buff, params);
+                        try PlayBuffer(buffers[0], params);
+                    }
+                    if (isMouseInRect(event.button.x, event.button.y, left_rect)) {
+                        const params = types.SoundParams.init(44100, 1024, std.heap.page_allocator);
+                        try PlayBuffer(buffers[1], params);
                     }
                 },
                 else => {},
@@ -95,6 +113,7 @@ pub fn buildRec(renderer: *SDL.SDL_Renderer, rec: SDL.SDL_Rect, color: Color) !v
         return error.SetRenderColorFailed;
     }
     _ = SDL.SDL_RenderFillRect(renderer, &rec);
+    SDL.SDL_RenderPresent(renderer);
 }
 
 pub fn isMouseInRect(mx: i32, my: i32, rec: SDL.SDL_Rect) bool {
