@@ -15,7 +15,7 @@ pub fn play(buffer: []u8, offset: *f64, params: SoundParams, seq: []types.Note) 
         try innerLoop(sliced_buff, seq[i], offset, params);
     }
 
-    try bufferToCSV(buffer);
+    // try bufferToCSV(buffer);
     return;
 }
 
