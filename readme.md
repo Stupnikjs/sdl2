@@ -15,4 +15,4 @@ Positions   Sample Value         Description
 41-44       File size (data)     Size of the data section, i.e. file size - 44 bytes header.
 
 
-Build a wav creator func 
+//  

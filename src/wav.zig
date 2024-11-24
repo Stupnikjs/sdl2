@@ -89,7 +89,6 @@ pub const WavHeader = struct {
     }
     pub fn WriteWav(self: *WavHeader, buffer: []u8, filename: []u8) !void {
         const file = try std.fs.cwd().createFile(filename, .{});
-        std.debug.print("file {any}", .{file});
         defer file.close();
         var allocator = std.heap.page_allocator;
         var serialized = try allocator.alloc(u8, 44);
@@ -100,3 +99,7 @@ pub const WavHeader = struct {
         _ = try file.write(buffer);
     }
 };
+
+pub fn PlayWav(filename: []u8) !void {
+    _ = filename;
+}
