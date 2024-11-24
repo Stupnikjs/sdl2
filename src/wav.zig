@@ -22,7 +22,7 @@ pub const WavHeader = struct {
     fmt_audio_format: u16 = 1,
 
     /// Number of channels (1 for mono, 2 for stereo)
-    fmt_num_channels: u16 = 2,
+    fmt_num_channels: u16 = 1,
 
     /// Sample rate (samples per second)
     fmt_sample_rate: u32 = 44100,
@@ -45,11 +45,18 @@ pub const WavHeader = struct {
     /// Initializes the WavHeader with default settings.
     fn init(self: *WavHeader) void {
         self.riff_chunk_size = 0;
-        self.fmt_audio_format = 1;  // PCM
-        self.fmt_num_channels = 2;  // stereo
+        self.fmt_audio_format = 1; // PCM
+        self.fmt_num_channels = 2; // stereo
         self.fmt_sample_rate = 44100;
         self.fmt_bits_per_sample = 16;
         self.fmt_block_size = (self.fmt_num_channels * self.fmt_bits_per_sample / 8);
         self.fmt_byte_rate = self.fmt_block_size * self.fmt_sample_rate;
+    }
+    pub fn serialize(self: *WavHeader) [44]u8 {
+        _ = self;
+    }
+
+    pub fn read(buff: []u8) WavHeader {
+        _ = buff;
     }
 };
