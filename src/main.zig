@@ -5,6 +5,7 @@ const types = @import("types.zig");
 const SoundParams = types.SoundParams;
 const SDL = @import("sdl.zig").SDL;
 const PlayBuffer = @import("sdl.zig").PlayBuffer;
+const wav = @import("wav.zig");
 
 pub fn main() !void {
 
@@ -17,10 +18,11 @@ pub fn main() !void {
     const paramsB = types.SoundParams.init(44100, 1024, std.heap.page_allocator);
     const buffA = try sdl.buildBuffer(paramsA, seq[0..]);
     const buffB = try sdl.buildBuffer(paramsB, seq1[0..]);
-
-    var arr: [2][]u8 = [2][]u8{ buffA, buffB };
-    std.time.sleep(1000);
-    try ui.uiWrapper(arr[0..]);
+    _ = buffA;
+    const u32_buffer_size: u32 = @intCast(buffB.len);
+    var header = wav.WavHeader.init(u32_buffer_size);
+    var filename = [_]u8{ 'h', 'e', '.', 'w', 'a', 'v' };
+    try header.WriteWav(buffB, &filename);
 }
 
 //
