@@ -7,6 +7,15 @@ const rec_size: c_int = 200;
 const window_width: c_int = 500;
 const window_height: c_int = 500;
 
+
+
+
+// création d'une sequence d'instrument avec
+// des effets 
+// bouton pour exporter en .wav 
+// bouton pour jouer le morceau 
+
+
 pub const ObjectShape = enum {
     Rectangle,
     Triangle,
