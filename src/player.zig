@@ -50,13 +50,15 @@ pub fn InstrumentToBuff(note: types.Note, buffer_len: usize, sin_offset: *f64, p
 
     for (0..buffer_len / 2) |i| {
 
-        // get the value and increment the offset
+        // test two values 
         const val: f64 = switch (note.instrument) {
             Instrument.sinWave => sinFunc(sin_offset, note.note, sr_f64),
             Instrument.squareWave => squareFunc(sin_offset, note.note, sr_f64),
             Instrument.triangleWave => triangleFunc(sin_offset, note.note, sr_f64),
             Instrument.silence => silenceFunc(sin_offset, note.note, sr_f64),
         };
+        // val2
+        // int16 + val2_i16
         const int16: i16 = @intFromFloat(val * params.amplitude);
         const bytes = tobytes(i16, int16);
 
