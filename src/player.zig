@@ -57,8 +57,11 @@ pub fn InstrumentToBuff(note: types.Note, buffer_len: usize, sin_offset: *f64, p
             Instrument.triangleWave => triangleFunc(sin_offset, note.note, sr_f64),
             Instrument.silence => silenceFunc(sin_offset, note.note, sr_f64),
         };
+
         // val2
         // int16 + val2_i16
+        // use another offset 
+
         const int16: i16 = @intFromFloat(val * params.amplitude);
         const bytes = tobytes(i16, int16);
 
