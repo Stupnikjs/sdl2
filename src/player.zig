@@ -7,7 +7,7 @@ const tobytes = types.intToBytes;
 const Instrument = types.Instrument;
 
 // try implement an array of buffers
-
+// array of offsets to duplicate sin wave 
 pub fn play(buffer: []u8, offset: *f64, params: SoundParams, seq: []types.Note) !void {
     if (@mod(buffer.len, seq.len) != 0) return types.bufferError.invalidLength;
     const buffer_chunk_num: usize = seq.len;
