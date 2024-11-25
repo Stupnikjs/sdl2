@@ -70,7 +70,7 @@ pub fn build(b: *std.Build) void {
     // but does not run it.
 
     const exe_unit_tests = b.addTest(.{
-        .root_source_file = b.path("src/input.zig"),
+        .root_source_file = b.path("src/test.zig"),
         .target = target,
         .optimize = optimize,
     });

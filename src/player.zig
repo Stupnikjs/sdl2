@@ -6,7 +6,8 @@ const bufferError = types.bufferError;
 const tobytes = types.intToBytes;
 const Instrument = types.Instrument;
 
-// pass buffer and fill it with sound
+// try implement an array of buffers
+
 pub fn play(buffer: []u8, offset: *f64, params: SoundParams, seq: []types.Note) !void {
     if (@mod(buffer.len, seq.len) != 0) return types.bufferError.invalidLength;
     const buffer_chunk_num: usize = seq.len;
@@ -65,6 +66,7 @@ pub fn InstrumentToBuff(note: types.Note, buffer_len: usize, sin_offset: *f64, p
     return buff;
 }
 
+// pass the number of notes ? or number of wave
 pub fn sinFunc(offset: *f64, note: f64, sr_f64: f64) f64 {
     const phase_increment: f64 = 2 * math.pi * note / sr_f64;
     const sin_val = @sin(offset.*);

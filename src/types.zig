@@ -48,6 +48,35 @@ pub const Note = struct {
             .note = note,
         };
     }
+    pub fn HalfToneDown(self: *Note) Note {
+        return .{
+            .instrument = self.instrument,
+            .note = getNoteFactor(self.note, 1),
+        };
+    }
+    pub fn FullToneDown(self: *Note) Note {
+        return .{
+            .instrument = self.instrument,
+            .note = getNoteFactor(self.note, 2),
+        };
+    }
+    pub fn PlayRange(self: *Note, up: bool, allocator: std.mem.Allocator) ![]Note {
+        var list = std.ArrayList(Note).init(allocator);
+        const direction: f64 = if (up) 1 else -1;
+        for (0..7) |i| {
+            switch (i) {
+                0 => try list.append(Note.init(self.instrument, self.note)), // A
+                1 => try list.append(Note.init(self.instrument, getNoteFactor(self.note, direction * 2))), // B
+                2 => try list.append(Note.init(self.instrument, getNoteFactor(self.note, direction * 3))), // C
+                3 => try list.append(Note.init(self.instrument, getNoteFactor(self.note, direction * 5))), // D
+                4 => try list.append(Note.init(self.instrument, getNoteFactor(self.note, direction * 7))), // E
+                5 => try list.append(Note.init(self.instrument, getNoteFactor(self.note, direction * 8))), // F
+                6 => try list.append(Note.init(self.instrument, getNoteFactor(self.note, direction * 10))), // G
+                else => break,
+            }
+        }
+        return list.toOwnedSlice();
+    }
 };
 
 pub const NoteLetter = enum {
@@ -62,16 +91,4 @@ pub const NoteLetter = enum {
 
 pub fn getNoteFactor(note: f64, tone_num: f64) f64 {
     return note * pow(f64, 2, (tone_num / 12));
-}
-
-pub fn playFull(main: f64) !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const params = types.SoundParams.init(
-        44100,
-        getNoteFactor(main, 6),
-        1024,
-        gpa.allocator(),
-    );
-
-    try api.PlayAudio(params);
 }

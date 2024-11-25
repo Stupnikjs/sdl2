@@ -74,7 +74,7 @@ pub fn buildBuffer(params: SoundParams, seq: []Note) ![]u8 {
     // sin_offset passed from each buffers
     var allocator = params.allocator;
     // const buffer = try allocator.alloc(u8, audio_len * sample_byte_num);
-    const buffer: []u8 = try allocator.alloc(u8, params.sr * 3);
+    const buffer: []u8 = try allocator.alloc(u8, params.sr * seq.len);
     const sin_offset: *f64 = try allocator.create(f64);
     sin_offset.* = 0;
     defer allocator.destroy(sin_offset);
