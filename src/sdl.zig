@@ -67,12 +67,6 @@ pub fn buildBuffer(params: SoundParams, seq: []Note) ![]u8 {
     // const buffer = try allocator.alloc(u8, audio_len * sample_byte_num);
     const buffer: []u8 = try allocator.alloc(u8, params.sr * seq.len);
 
-    // move this to play function 
-    // need one offset per wave 
-    const sin_offset: *f64 = try allocator.create(f64);
-    sin_offset.* = 0;
-    defer allocator.destroy(sin_offset);
-
     // need to create a buffer
     try play(buffer, sin_offset, params, seq);
     return buffer;
