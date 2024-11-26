@@ -32,7 +32,7 @@ pub const SoundParams = struct {
         return .{
             .sr = sr,
             .chunk_len = chunk_len,
-            .amplitude = 10000,
+            .amplitude = 30000,
             .allocator = allocator,
         };
     }
@@ -41,11 +41,13 @@ pub const SoundParams = struct {
 pub const Note = struct {
     instrument: Instrument,
     note: f64,
+    shift: bool,
 
-    pub fn init(in: Instrument, note: f64) Note {
+    pub fn init(in: Instrument, note: f64, shift: bool) Note {
         return .{
             .instrument = in,
             .note = note,
+            .shift = shift,
         };
     }
     pub fn HalfToneDown(self: *Note) Note {
@@ -65,13 +67,13 @@ pub const Note = struct {
         const direction: f64 = if (up) 1 else -1;
         for (0..7) |i| {
             switch (i) {
-                0 => try list.append(Note.init(self.instrument, self.note)), // A
-                1 => try list.append(Note.init(self.instrument, getNoteFactor(self.note, direction * 2))), // B
-                2 => try list.append(Note.init(self.instrument, getNoteFactor(self.note, direction * 3))), // C
-                3 => try list.append(Note.init(self.instrument, getNoteFactor(self.note, direction * 5))), // D
-                4 => try list.append(Note.init(self.instrument, getNoteFactor(self.note, direction * 7))), // E
-                5 => try list.append(Note.init(self.instrument, getNoteFactor(self.note, direction * 8))), // F
-                6 => try list.append(Note.init(self.instrument, getNoteFactor(self.note, direction * 10))), // G
+                0 => try list.append(Note.init(self.instrument, self.note, false)), // A
+                1 => try list.append(Note.init(self.instrument, getNoteFactor(self.note, direction * 2), false)), // B
+                2 => try list.append(Note.init(self.instrument, getNoteFactor(self.note, direction * 3), true)), // C
+                3 => try list.append(Note.init(self.instrument, getNoteFactor(self.note, direction * 5), false)), // D
+                4 => try list.append(Note.init(self.instrument, getNoteFactor(self.note, direction * 7), true)), // E
+                5 => try list.append(Note.init(self.instrument, getNoteFactor(self.note, direction * 8), false)), // F
+                6 => try list.append(Note.init(self.instrument, getNoteFactor(self.note, direction * 10), false)), // G
                 else => break,
             }
         }
@@ -91,4 +93,23 @@ pub const NoteLetter = enum {
 
 pub fn getNoteFactor(note: f64, tone_num: f64) f64 {
     return note * pow(f64, 2, (tone_num / 12));
+}
+
+pub fn bufferToCSV(buffer: []u8) !void {
+    if (buffer.len % 2 != 0) return bufferError.invalidLength;
+    const file = try std.fs.cwd().createFile("buf.csv", .{});
+
+    for (0..buffer.len / 2) |i| {
+        const first = buffer[i * 2];
+        const sec = buffer[i * 2 + 1];
+        const buff: [2]u8 = [2]u8{ first, sec };
+        const sample: i16 = std.mem.bytesToValue(i16, &buff);
+        var intStr: [6]u8 = undefined;
+        _ = try std.fmt.bufPrint(&intStr, "{}", .{sample});
+        _ = try file.write(&intStr);
+        const space: [1]u8 = [1]u8{'\n'};
+        _ = try file.write(&space);
+    }
+
+    file.close();
 }

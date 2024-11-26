@@ -7,7 +7,7 @@ const wav = @import("wav.zig");
 
 test "wav writefile" {
     // Initialize SDL
-    var Asin: types.Note = types.Note.init(types.Instrument.sinWave, 200);
+    var Asin: types.Note = types.Note.init(types.Instrument.sinWave, 200, false);
     var seq = try Asin.PlayRange(false, std.heap.page_allocator);
     const paramsA = types.SoundParams.init(44100, 1024, std.heap.page_allocator);
     const buffA = try sdl.buildBuffer(paramsA, seq[0..]);
@@ -16,4 +16,5 @@ test "wav writefile" {
     var header = wav.WavHeader.init(u32_buffer_size);
     var filename = [_]u8{ 'h', 'e', '.', 'w', 'a', 'v' };
     try header.WriteWav(buffA, &filename);
+    types.bufferToCSV(buffA), 
 }
