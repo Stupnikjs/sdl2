@@ -7,14 +7,10 @@ const rec_size: c_int = 200;
 const window_width: c_int = 500;
 const window_height: c_int = 500;
 
-
-
-
 // création d'une sequence d'instrument avec
-// des effets 
-// bouton pour exporter en .wav 
-// bouton pour jouer le morceau 
-
+// des effets
+// bouton pour exporter en .wav
+// bouton pour jouer le morceau
 
 pub const ObjectShape = enum {
     Rectangle,
@@ -128,3 +124,5 @@ pub fn buildRec(renderer: *SDL.SDL_Renderer, rec: SDL.SDL_Rect, color: Color) !v
 pub fn isMouseInRect(mx: i32, my: i32, rec: SDL.SDL_Rect) bool {
     if (mx > rec.x and my > rec.y and mx < rec.x + rec.w and my < rec.y + rec.h) return true else return false;
 }
+
+// BUILD A WAVE PLOT WITH SDL
