@@ -75,6 +75,9 @@ pub fn buildBuffer(params: SoundParams, seq: []Note) ![]u8 {
     var allocator = params.allocator;
     // const buffer = try allocator.alloc(u8, audio_len * sample_byte_num);
     const buffer: []u8 = try allocator.alloc(u8, params.sr * seq.len);
+
+    // move this to play function 
+    // need one offset per wave 
     const sin_offset: *f64 = try allocator.create(f64);
     sin_offset.* = 0;
     defer allocator.destroy(sin_offset);
@@ -84,7 +87,7 @@ pub fn buildBuffer(params: SoundParams, seq: []Note) ![]u8 {
     return buffer;
 }
 
-// play a buffer
+// SDL call to a sound Buffer 
 pub fn PlayBuffer(buffer: []u8, params: SoundParams) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
     // defer SDL.SDL_Quit();
