@@ -12,7 +12,7 @@ pub const SDL = @cImport({
     @cInclude("SDL2/SDL.h");
 });
 
-// change Matrix name space conflicting with raylib here
+
 
 const maxU16: usize = @as(usize, math.maxInt(u16));
 
@@ -23,16 +23,14 @@ pub var sec_len: f64 = 10;
 
 fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) void {
     _ = ctx;
-
-    // Accessing global variables audio_pos and audio_len
-    // Crunching might come from here
-
+ 
     const len_usize: usize = @intCast(len);
     const audio_len_usize: usize = @intCast(audio_len);
     const length = if (len > audio_len) audio_len_usize else len_usize;
 
     const audio_cast: [*c]u8 = @ptrCast(audio_pos);
-
+     
+    // smooth end of buffer read 
     const limit: f64 = 4000 * sec_len;
     const limit_usize: usize = @intFromFloat(limit);
     if (audio_len < limit_usize) {
@@ -71,7 +69,6 @@ pub fn InitSpec(sr: usize, samples: u16) SDL.SDL_AudioSpec {
 }
 
 pub fn buildBuffer(params: SoundParams, seq: []Note) ![]u8 {
-    // sin_offset passed from each buffers
     var allocator = params.allocator;
     // const buffer = try allocator.alloc(u8, audio_len * sample_byte_num);
     const buffer: []u8 = try allocator.alloc(u8, params.sr * seq.len);
