@@ -8,7 +8,14 @@ const Instrument = types.Instrument;
 
 // try implement an array of buffers
 // array of offsets to duplicate sin wave 
-pub fn play(buffer: []u8, offset: *f64, params: SoundParams, seq: []types.Note) !void {
+pub fn play(buffer: []u8, params: SoundParams, seq: []types.Note) !void {
+
+    // move this to play function 
+    // need one offset per wave 
+    const sin_offset: *f64 = try allocator.create(f64);
+    sin_offset.* = 0;
+    defer allocator.destroy(sin_offset);
+
     if (@mod(buffer.len, seq.len) != 0) return types.bufferError.invalidLength;
     const buffer_chunk_num: usize = seq.len;
     for (0..buffer_chunk_num) |i| {
