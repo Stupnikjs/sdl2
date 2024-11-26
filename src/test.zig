@@ -11,6 +11,7 @@ test "wav writefile" {
     var seq = try Asin.PlayRange(false, std.heap.page_allocator);
     const paramsA = types.SoundParams.init(44100, 1024, std.heap.page_allocator);
     const buffA = try sdl.buildBuffer(paramsA, seq[0..]);
+    // pass effect to buff A 
     const u32_buffer_size: u32 = @intCast(buffA.len);
     var header = wav.WavHeader.init(u32_buffer_size);
     var filename = [_]u8{ 'h', 'e', '.', 'w', 'a', 'v' };
