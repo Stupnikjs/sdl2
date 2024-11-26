@@ -5,16 +5,18 @@ const math = std.math;
 const bufferError = types.bufferError;
 const tobytes = types.intToBytes;
 const Instrument = types.Instrument;
+const Note = types.Note;
 
 // try implement an array of buffers
-// array of offsets to duplicate sin wave 
+// array of offsets to duplicate sin wave
 pub fn play(buffer: []u8, params: SoundParams, seq: []types.Note) !void {
 
-    // move this to play function 
-    // need one offset per wave 
-    const sin_offset: *f64 = try allocator.create(f64);
-    sin_offset.* = 0;
-    defer allocator.destroy(sin_offset);
+    // move this to play function
+    // need one offset per wave
+    const allocator = params.allocator;
+    const offset: *f64 = try allocator.create(f64);
+    offset.* = 0;
+    defer allocator.destroy(offset);
 
     if (@mod(buffer.len, seq.len) != 0) return types.bufferError.invalidLength;
     const buffer_chunk_num: usize = seq.len;
@@ -36,42 +38,23 @@ pub fn innerLoop(buffer: []u8, note: types.Note, offset: *f64, params: SoundPara
 
     for (0..iter_num_usize) |i| {
         if (i != iter_num_usize) {
-            // pass the note also
-            // need intrument and effect in some struct
-
-            const buff = try InstrumentToBuff(note, params.chunk_len, offset, params);
-
-            // copy intermediate buffer to main one
+            const buff = try soundToBuffer(note, params.chunk_len, offset, params);
             @memcpy(buffer[i * chunk_size .. i * chunk_size + chunk_size], buff);
             allocator.free(buff);
         }
     }
-    const buff = try InstrumentToBuff(note, mod, offset, params);
+    const buff = try soundToBuffer(note, mod, offset, params);
     @memcpy(buffer[iter_num_usize * chunk_size .. iter_num_usize * chunk_size + mod], buff);
 }
 
-pub fn InstrumentToBuff(note: types.Note, buffer_len: usize, sin_offset: *f64, params: SoundParams) ![]u8 {
+pub fn soundToBuffer(note: types.Note, buffer_len: usize, sin_offset: *f64, params: SoundParams) ![]u8 {
     const allocator = params.allocator;
     const buff = try allocator.alloc(u8, buffer_len);
     const sr_f64: f64 = @floatFromInt(params.sr);
-
     for (0..buffer_len / 2) |i| {
-
-        // test two values 
-        const val: f64 = switch (note.instrument) {
-            Instrument.sinWave => sinFunc(sin_offset, note.note, sr_f64),
-            Instrument.squareWave => squareFunc(sin_offset, note.note, sr_f64),
-            Instrument.triangleWave => triangleFunc(sin_offset, note.note, sr_f64),
-            Instrument.silence => silenceFunc(sin_offset, note.note, sr_f64),
-        };
-
-        // val2
-        // int16 + val2_i16
-        // use another offset 
-
+        const val: f64 = calcWave(note, sin_offset, sr_f64);
         const int16: i16 = @intFromFloat(val * params.amplitude);
         const bytes = tobytes(i16, int16);
-
         buff[i * 2] = bytes[0];
         buff[i * 2 + 1] = bytes[1];
     }
@@ -130,4 +113,13 @@ pub fn bufferToCSV(buffer: []u8) !void {
     }
 
     file.close();
+}
+
+fn calcWave(note: Note, sin_offset: *f64, sr_f64: f64) f64 {
+    return switch (note.instrument) {
+        Instrument.sinWave => sinFunc(sin_offset, note.note, sr_f64),
+        Instrument.squareWave => squareFunc(sin_offset, note.note, sr_f64),
+        Instrument.triangleWave => triangleFunc(sin_offset, note.note, sr_f64),
+        Instrument.silence => silenceFunc(sin_offset, note.note, sr_f64),
+    };
 }

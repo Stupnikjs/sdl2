@@ -12,8 +12,6 @@ pub const SDL = @cImport({
     @cInclude("SDL2/SDL.h");
 });
 
-
-
 const maxU16: usize = @as(usize, math.maxInt(u16));
 
 pub var audio_pos: ?[*]u8 = null; // Pointer to the audio buffer.
@@ -23,14 +21,14 @@ pub var sec_len: f64 = 10;
 
 fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) void {
     _ = ctx;
- 
+
     const len_usize: usize = @intCast(len);
     const audio_len_usize: usize = @intCast(audio_len);
     const length = if (len > audio_len) audio_len_usize else len_usize;
 
     const audio_cast: [*c]u8 = @ptrCast(audio_pos);
-     
-    // smooth end of buffer read 
+
+    // smooth end of buffer read
     const limit: f64 = 4000 * sec_len;
     const limit_usize: usize = @intFromFloat(limit);
     if (audio_len < limit_usize) {
@@ -38,7 +36,7 @@ fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) 
         audio_len = 0;
         return;
     }
-   
+
     _ = SDL.SDL_memcpy(stream, audio_cast, length); // Copy audio data to stream
     audio_pos.? += length;
     audio_len -= length;
@@ -68,11 +66,11 @@ pub fn buildBuffer(params: SoundParams, seq: []Note) ![]u8 {
     const buffer: []u8 = try allocator.alloc(u8, params.sr * seq.len);
 
     // need to create a buffer
-    try play(buffer, sin_offset, params, seq);
+    try play(buffer, params, seq);
     return buffer;
 }
 
-// SDL call to a sound Buffer 
+// SDL call to a sound Buffer
 pub fn PlayBuffer(buffer: []u8, params: SoundParams) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
     // defer SDL.SDL_Quit();
