@@ -35,7 +35,7 @@ pub fn getRgbFromColor(color: Color) [4]u8 {
     }
 }
 
-pub fn uiWrapper(buffers: [][]u8) !void {
+pub fn uiWrapper() !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) != 0) {
         return error.SDLInitFailed;
     }
@@ -61,68 +61,24 @@ pub fn uiWrapper(buffers: [][]u8) !void {
         return error.RendererCreationFailed;
     }
 
+    _ = SDL.SDL_SetRenderDrawColor(renderer, 100, 30, 200, 255);
+
+    _ = SDL.SDL_RenderDrawLine(renderer, 0, 0, 30, 300);
+
+    const buffer = [_]u8{ 1, 3, 4, 34 };
+    for (buffer, 0..buffer.len) |b, i| {
+        const x: c_int = @intCast(i);
+        const y: c_int = @intCast(b);
+        _ = SDL.SDL_RenderDrawLine(renderer, 0, 0, x, y);
+        _ = SDL.SDL_RenderDrawPoint(renderer, x, y);
+    }
+
+    SDL.SDL_RenderPresent(renderer);
     // Set the render draw color to black (R: 0, G: 0, B: 0, A: 255) and clear the screen
-    _ = SDL.SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+
     _ = SDL.SDL_RenderClear(renderer);
 
-    // Create a rectangle to draw (position x, y, width, height)
-    const left_rect = SDL.SDL_Rect{
-        .x = 0,
-        .y = (window_height - rec_size) / 2,
-        .w = rec_size,
-        .h = rec_size,
-    };
-    const right_rect = SDL.SDL_Rect{
-        .x = window_width / 2,
-        .y = (window_height - rec_size) / 2,
-        .w = rec_size,
-        .h = rec_size,
-    };
-    try buildRec(renderer.?, left_rect, Color.purple);
-
-    try buildRec(renderer.?, right_rect, Color.yellow);
-    // Render the yellow rectangle
-    var exit = false;
-    while (!exit) {
-        var event: SDL.SDL_Event = undefined;
-        // Handle events
-        while (SDL.SDL_PollEvent(&event) != 0) {
-            switch (event.common.type) {
-                SDL.SDL_QUIT => {
-                    exit = true;
-                    break;
-                },
-                SDL.SDL_MOUSEBUTTONDOWN => {
-                    if (isMouseInRect(event.button.x, event.button.y, right_rect)) {
-                        const params = types.SoundParams.init(44100, 1024, std.heap.page_allocator);
-                        try PlayBuffer(buffers[0], params);
-                    }
-                    if (isMouseInRect(event.button.x, event.button.y, left_rect)) {
-                        const params = types.SoundParams.init(44100, 1024, std.heap.page_allocator);
-                        try PlayBuffer(buffers[1], params);
-                    }
-                },
-                else => {},
-            }
-        }
-    }
     defer SDL.SDL_DestroyRenderer(renderer);
     // Wait before exiting
     std.time.sleep(10 * std.time.ns_per_s);
 }
-
-pub fn buildRec(renderer: *SDL.SDL_Renderer, rec: SDL.SDL_Rect, color: Color) !void {
-    // Set the render draw color to yellow (R: 255, G: 255, B: 0, A: 255)
-    const r_color = getRgbFromColor(color);
-    if (SDL.SDL_SetRenderDrawColor(renderer, r_color[0], r_color[1], r_color[2], r_color[3]) != 0) {
-        return error.SetRenderColorFailed;
-    }
-    _ = SDL.SDL_RenderFillRect(renderer, &rec);
-    SDL.SDL_RenderPresent(renderer);
-}
-
-pub fn isMouseInRect(mx: i32, my: i32, rec: SDL.SDL_Rect) bool {
-    if (mx > rec.x and my > rec.y and mx < rec.x + rec.w and my < rec.y + rec.h) return true else return false;
-}
-
-// BUILD A WAVE PLOT WITH SDL
