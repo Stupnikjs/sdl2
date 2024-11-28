@@ -5,31 +5,17 @@ const ui = @import("ui.zig");
 const testing = std.testing;
 const expect = testing.expect;
 const wav = @import("wav.zig");
-
-test "wav writefile" {
-    // Initialize SDL
-
-    // pass effect to buff A
-    //const u32_buffer_size: u32 = @intCast(buffA.len);
-    //var header = wav.WavHeader.init(u32_buffer_size);
-    //var filename = [_]u8{ 'h', 'e', '.', 'w', 'a', 'v' };
-    // try header.WriteWav(buffA, &filename);
-    // try types.bufferToCSV(buffA);
-
-}
+const buf = @import("buf.zig");
 
 test "ui BUFFER PLOT" {
-    var buffA = [_]u8{
-        1,  4,  40, 59, 59, 40, 40, 1,  4,  40, 59, 59, 40, 40, 1,  4,  40, 59, 59, 40, 40, 1,  4,  40,
-        59, 59, 40, 40, 1,  4,  40, 59, 59, 40, 40, 1,  4,  40, 59, 59, 40, 40, 1,  4,  40, 59, 59, 40,
-        40, 1,  4,  40, 59, 59, 40, 40, 1,  4,  40, 59, 59, 40, 40, 1,  4,  40, 59, 59, 40, 40, 40, 1,
-        4,  40, 59, 59, 40, 40, 1,  4,  40, 59, 59, 40, 40, 1,  4,  40, 59, 59, 40, 40, 4,  40, 59, 59,
-        40, 40, 1,  4,  40, 59, 59, 40, 40, 1,  4,  40, 59, 59, 40, 40, 1,  4,  40, 59, 59, 40, 40, 1,
-        4,  40, 59, 59, 40, 40, 1,  4,  40, 59, 59, 40, 40, 1,  4,  40, 59, 59, 40, 40, 1,  4,  40, 59,
-        59, 40, 40, 1,  4,  40, 59, 59, 40, 40, 1,  4,  40, 59, 59, 40, 40, 40, 1,  4,  40, 59, 59, 40,
-        40, 1,  4,  40, 59, 59, 40, 40, 1,  4,  40, 59, 59, 40, 40,
-    };
-    try ui.uiWrapper(buffA[0..]);
+    var buffA = try buildRandomBuf();
+    var allocator = testing.allocator;
+    var buff16 = try allocator.alloc(i16, buffA.len / 2);
+    for (0..buffA.len / 2) |i| {
+        buff16[i] = ui.sampleExtract(buffA[i * 2 .. i * 2 + 2]);
+    }
+    const newBuff = try buf.normalizeBuff(i16, buff16, std.heap.page_allocator, 300);
+    try ui.uiWrapper(i16, newBuff[0..]);
 }
 
 pub fn buildRandomBuf() ![]u8 {

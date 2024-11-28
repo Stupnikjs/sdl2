@@ -103,5 +103,3 @@ pub const WavHeader = struct {
 pub fn PlayWav(filename: []u8) !void {
     _ = filename;
 }
-
-test "wav writefile" {}

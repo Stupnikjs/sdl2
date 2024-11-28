@@ -4,8 +4,8 @@ const types = @import("types.zig");
 const PlayBuffer = @import("sdl.zig").PlayBuffer;
 
 const rec_size: c_int = 200;
-const window_width: c_int = 500;
-const window_height: c_int = 500;
+const window_width: c_int = 600;
+const window_height: c_int = 600;
 
 // création d'une sequence d'instrument avec
 // des effets
@@ -35,7 +35,7 @@ pub fn getRgbFromColor(color: Color) [4]u8 {
     }
 }
 
-pub fn uiWrapper(buffer: []u8) !void {
+pub fn uiWrapper(T: type, buffer: []T) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) != 0) {
         return error.SDLInitFailed;
     }
@@ -62,31 +62,34 @@ pub fn uiWrapper(buffer: []u8) !void {
     }
 
     _ = SDL.SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+
     // build exit button
 
-    try BufferPlot(renderer.?, buffer);
-    SDL.SDL_RenderPresent(renderer);
+    try BufferPlot(renderer.?, T, buffer);
+
     // Set the render draw color to black (R: 0, G: 0, B: 0, A: 255) and clear the screen
 
+    _ = RenderExitButton(renderer.?, 20);
+    try processEvent();
+    SDL.SDL_RenderPresent(renderer);
     _ = SDL.SDL_RenderClear(renderer);
 
     defer SDL.SDL_DestroyRenderer(renderer);
     // Wait before exiting
-    std.time.sleep(10 * std.time.ns_per_s);
+    std.time.sleep(1000 * std.time.ns_per_s);
 }
-
-pub fn BufferPlot(renderer: *SDL.SDL_Renderer, buffer: []u8) !void {
-    _ = buffer;
+pub fn BufferPlot(renderer: *SDL.SDL_Renderer, T: type, buffer: []T) !void {
     const Ax = renderAxes(renderer, 20);
 
     _ = SDL.SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255);
 
-    const testBuff = [_]u8{ 10, 40, 20, 0, 10, 50, 80, 120, 30 };
     var last_point_x: c_int = 0;
     var last_point_y: c_int = 0;
-    for (0..testBuff.len) |i| {
-        const c_i: c_int = @intCast(i * 50);
-        const c_y: c_int = @intCast(testBuff[i]);
+    const len: usize = if (buffer.len > window_width) window_width else buffer.len;
+    for (0..len) |i| {
+        const c_i: c_int = @intCast(i);
+        std.debug.print("{d} \n", .{buffer[i]});
+        const c_y: c_int = @intCast(buffer[i]);
 
         // y is value of origin_y minus y
         // x is sum of x plus offset of origin x
@@ -108,10 +111,35 @@ pub fn renderAxes(renderer: *SDL.SDL_Renderer, n: c_int) Axes {
         .y = origin_y,
     };
 }
+
+// can be more generics
 pub fn sampleExtract(slice: []u8) i16 {
     const first = slice[0];
     const sec = slice[1];
     const buff: [2]u8 = [2]u8{ first, sec };
     const sample: i16 = std.mem.bytesToValue(i16, &buff);
     return sample;
+}
+
+pub fn RenderExitButton(renderer: *SDL.SDL_Renderer, size: c_int) SDL.SDL_Rect {
+    const rectButton = SDL.SDL_Rect{
+        .x = 0,
+        .y = 0,
+        .h = size,
+        .w = size,
+    };
+    _ = SDL.SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    _ = SDL.SDL_RenderFillRect(renderer, &rectButton);
+    return rectButton;
+}
+
+pub fn processEvent() !void {
+    var running = true;
+    var event: SDL.SDL_Event = undefined;
+    while (running) {
+        while (SDL.SDL_PollEvent(&event) != 0) {
+                std.debug.print("{any} \n", .{event.type});
+            }
+        }
+    }
 }
