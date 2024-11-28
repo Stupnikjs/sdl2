@@ -70,12 +70,29 @@ pub fn uiWrapper(T: type, buffer: []T) !void {
     // Set the render draw color to black (R: 0, G: 0, B: 0, A: 255) and clear the screen
 
     _ = RenderExitButton(renderer.?, 20);
-
-    // render all element
-    // maybe call again for dynamic content
     SDL.SDL_RenderPresent(renderer);
 
     _ = SDL.SDL_RenderClear(renderer);
+    // render all element
+    // maybe call again for dynamic content
+    var exit = false;
+    var event: SDL.SDL_Event = undefined;
+    while (!exit) {
+
+        // Handle events
+        while (SDL.SDL_PollEvent(&event) != 0) {
+            switch (event.type) {
+                SDL.SDL_QUIT => {
+                    exit = true;
+                    break;
+                },
+                SDL.SDL_MOUSEBUTTONDOWN => {
+                    std.debug.print("here", .{});
+                },
+                else => {},
+            }
+        }
+    }
 
     defer SDL.SDL_DestroyRenderer(renderer);
     // Wait before exiting
