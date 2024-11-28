@@ -76,34 +76,35 @@ pub fn uiWrapper(buffer: []u8) !void {
 
 pub fn BufferPlot(renderer: *SDL.SDL_Renderer, buffer: []u8) !void {
     _ = buffer;
-    const Ax = renderAxes(renderer, 10);
-    _ = Ax;
-    const testBuff = [_]u8{ 10, 20, 30, 40 };
+    const Ax = renderAxes(renderer, 20);
+
+    _ = SDL.SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255);
+
+    const testBuff = [_]u8{ 10, 40, 20, 0, 10, 50, 80, 120, 30 };
     var last_point_x: c_int = 0;
     var last_point_y: c_int = 0;
     for (0..testBuff.len) |i| {
-        const c_i: c_int = @intCast(i);
+        const c_i: c_int = @intCast(i * 50);
         const c_y: c_int = @intCast(testBuff[i]);
-        _ = SDL.SDL_RenderDrawLine(renderer, last_point_x, last_point_y, c_i, c_y);
+
+        // y is value of origin_y minus y
+        // x is sum of x plus offset of origin x
+        _ = SDL.SDL_RenderDrawLine(renderer, Ax.origin_x + last_point_x, Ax.y - last_point_y, Ax.origin_x + c_i, Ax.y - c_y);
         last_point_x = c_i;
         last_point_y = c_y;
     }
 }
 
-const Axes = struct { origin_x: c_int, origin_y: c_int, top_y: c_int, top_x: c_int };
+const Axes = struct { origin_x: c_int, top_x: c_int, y: c_int };
 pub fn renderAxes(renderer: *SDL.SDL_Renderer, n: c_int) Axes {
     const origin_x = @divTrunc(window_width, n);
-    const top_y = @divTrunc(window_height, n);
-    const origin_y = @divTrunc(window_height * (n - 1), n);
     const top_x = @divTrunc(window_width * (n - 1), n);
-
-    _ = SDL.SDL_RenderDrawLine(renderer, origin_x, origin_y, origin_x, top_y);
+    const origin_y = @divTrunc(window_height, 2);
     _ = SDL.SDL_RenderDrawLine(renderer, origin_x, origin_y, top_x, origin_y);
     return .{
         .origin_x = origin_x,
-        .origin_y = origin_y,
-        .top_y = top_y,
         .top_x = top_x,
+        .y = origin_y,
     };
 }
 pub fn sampleExtract(slice: []u8) i16 {
