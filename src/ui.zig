@@ -62,6 +62,7 @@ pub fn uiWrapper(buffer: []u8) !void {
     }
 
     _ = SDL.SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+    // build exit button
 
     try BufferPlot(renderer.?, buffer);
     SDL.SDL_RenderPresent(renderer);
