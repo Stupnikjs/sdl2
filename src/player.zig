@@ -9,7 +9,7 @@ const Note = types.Note;
 
 // try implement an array of buffers
 // array of offsets to duplicate sin wave
-pub fn play(buffer: []u8, params: SoundParams, seq: []types.Note) !void {
+pub fn generateSound(buffer: []u8, params: SoundParams, seq: []types.Note) !void {
 
     // move this to play function
     // need one offset per wave

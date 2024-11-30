@@ -2,7 +2,7 @@ const std = @import("std");
 const endian = @import("builtin").cpu.arch.endian();
 const math = std.math;
 const tobytes = @import("types.zig").intToBytes;
-const play = @import("player.zig").play;
+const generateSound = @import("player.zig").generateSound;
 const SoundParams = types.SoundParams;
 const types = @import("types.zig");
 const Note = types.Note;
@@ -65,13 +65,13 @@ pub fn buildBuffer(params: SoundParams, seq: []Note) ![]u8 {
     // const buffer = try allocator.alloc(u8, audio_len * sample_byte_num);
     const buffer: []u8 = try allocator.alloc(u8, params.sr * seq.len);
 
-    // need to create a buffer
-    try play(buffer, params, seq);
+    // sound to buffer
+    try generateSound(buffer, params, seq);
     return buffer;
 }
 
 // SDL call to a sound Buffer
-pub fn PlayBuffer(buffer: []u8, params: SoundParams) !void {
+pub fn SDL_PlayBuffer(buffer: []u8, params: SoundParams) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
     // defer SDL.SDL_Quit();
     audio_len = buffer.len;
@@ -87,6 +87,7 @@ pub fn PlayBuffer(buffer: []u8, params: SoundParams) !void {
 
     if (audio_len == 0) {
         _ = allocator;
+        // call these on quit from ui
         // SDL.SDL_CloseAudio();
         // allocator.free(buffer);
         // _ = SDL.SDL_Quit();

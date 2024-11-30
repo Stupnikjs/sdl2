@@ -69,7 +69,7 @@ pub fn uiWrapper(T: type, buffer: []T) !void {
 
     // Set the render draw color to black (R: 0, G: 0, B: 0, A: 255) and clear the screen
 
-    _ = RenderExitButton(renderer.?, 20);
+    const exitRect = RenderExitButton(renderer.?, 20);
     SDL.SDL_RenderPresent(renderer);
 
     _ = SDL.SDL_RenderClear(renderer);
@@ -87,7 +87,9 @@ pub fn uiWrapper(T: type, buffer: []T) !void {
                     break;
                 },
                 SDL.SDL_MOUSEBUTTONDOWN => {
-                    std.debug.print("here", .{});
+                    if (isCloseApp(event, exitRect)) {
+                        SDL.SDL_Quit();
+                    }
                 },
                 else => {},
             }
@@ -153,4 +155,10 @@ pub fn RenderExitButton(renderer: *SDL.SDL_Renderer, size: c_int) SDL.SDL_Rect {
     return rectButton;
 }
 
-pub fn processEvent() !void {}
+pub fn isCloseApp(event: SDL.SDL_Event, rect: SDL.SDL_Rect) bool {
+    if (event.button.x > rect.x) {
+        std.debug.print("HELLO", .{});
+        return true;
+    }
+    return false;
+}
