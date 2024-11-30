@@ -2,6 +2,7 @@ const std = @import("std");
 const SDL = @import("sdl.zig").SDL;
 const types = @import("types.zig");
 const buf = @import("buf.zig");
+const sdl = @import("sdl.zig");
 const PlayBuffer = @import("sdl.zig").SDL_PlayBuffer;
 
 const rec_size: c_int = 200;
@@ -64,15 +65,14 @@ pub fn uiWrapper(buffer: []u8, params: types.SoundParams) !void {
 
     _ = SDL.SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
 
-    try BufferPlot(renderer.?, buffer);
+    try BufferPlot(renderer.?, buffer, params.allocator);
     eventLoop(renderer.?, buffer, params);
     // Set the render draw color to black (R: 0, G: 0, B: 0, A: 255) and clear the screen
 
     defer SDL.SDL_DestroyRenderer(renderer);
     std.time.sleep(1000 * std.time.ns_per_s);
 }
-pub fn BufferPlot(renderer: *SDL.SDL_Renderer, buffer: []u8) !void {
-    const allocator = std.heap.page_allocator;
+pub fn BufferPlot(renderer: *SDL.SDL_Renderer, buffer: []u8, allocator: std.mem.Allocator) !void {
     var buff16 = try buf.buffu8ToI16(buffer, allocator);
     buff16 = try buf.normalizeBuff(i16, buff16, allocator, 200);
     defer allocator.free(buff16);
@@ -83,6 +83,7 @@ pub fn BufferPlot(renderer: *SDL.SDL_Renderer, buffer: []u8) !void {
     var last_point_x: c_int = 0;
     var last_point_y: c_int = 0;
     const len: usize = if (buff16.len > window_width) window_width else buff16.len;
+
     for (0..len) |i| {
         const c_i: c_int = @intCast(i);
         const c_y: c_int = @intCast(buff16[i]);
@@ -91,7 +92,7 @@ pub fn BufferPlot(renderer: *SDL.SDL_Renderer, buffer: []u8) !void {
         // x is sum of x plus offset of origin x
         _ = SDL.SDL_RenderDrawLine(renderer, Ax.origin_x + last_point_x, Ax.y - last_point_y, Ax.origin_x + c_i, Ax.y - c_y);
         if (i % 16 == 0) {
-            _ = SDL.SDL_RenderDrawCircle();
+            // circle = SDL.SDL_RenderDrawCircle();
         }
         last_point_x = c_i;
         last_point_y = c_y;
