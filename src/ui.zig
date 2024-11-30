@@ -1,7 +1,8 @@
 const std = @import("std");
 const SDL = @import("sdl.zig").SDL;
 const types = @import("types.zig");
-const PlayBuffer = @import("sdl.zig").PlayBuffer;
+const buf = @import("buf.zig");
+const PlayBuffer = @import("sdl.zig").SDL_PlayBuffer;
 
 const rec_size: c_int = 200;
 const window_width: c_int = 600;
@@ -35,7 +36,7 @@ pub fn getRgbFromColor(color: Color) [4]u8 {
     }
 }
 
-pub fn uiWrapper(T: type, buffer: []T) !void {
+pub fn uiWrapper(buffer: []u8, params: types.SoundParams) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) != 0) {
         return error.SDLInitFailed;
     }
@@ -63,55 +64,28 @@ pub fn uiWrapper(T: type, buffer: []T) !void {
 
     _ = SDL.SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
 
-    // build exit button
-
-    try BufferPlot(renderer.?, T, buffer);
-
+    try BufferPlot(renderer.?, buffer);
+    eventLoop(renderer.?, buffer, params);
     // Set the render draw color to black (R: 0, G: 0, B: 0, A: 255) and clear the screen
 
-    const exitRect = RenderExitButton(renderer.?, 20);
-    SDL.SDL_RenderPresent(renderer);
-
-    _ = SDL.SDL_RenderClear(renderer);
-    // render all element
-    // maybe call again for dynamic content
-    var exit = false;
-    var event: SDL.SDL_Event = undefined;
-    while (!exit) {
-
-        // Handle events
-        while (SDL.SDL_PollEvent(&event) != 0) {
-            switch (event.type) {
-                SDL.SDL_QUIT => {
-                    exit = true;
-                    break;
-                },
-                SDL.SDL_MOUSEBUTTONDOWN => {
-                    if (isCloseApp(event, exitRect)) {
-                        SDL.SDL_Quit();
-                    }
-                },
-                else => {},
-            }
-        }
-    }
-
     defer SDL.SDL_DestroyRenderer(renderer);
-    // Wait before exiting
     std.time.sleep(1000 * std.time.ns_per_s);
 }
-pub fn BufferPlot(renderer: *SDL.SDL_Renderer, T: type, buffer: []T) !void {
+pub fn BufferPlot(renderer: *SDL.SDL_Renderer, buffer: []u8) !void {
+    const allocator = std.heap.page_allocator;
+    var buff16 = try buf.buffu8ToI16(buffer, allocator);
+    buff16 = try buf.normalizeBuff(i16, buff16, allocator, 300);
+    defer allocator.free(buff16);
     const Ax = renderAxes(renderer, 20);
 
     _ = SDL.SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255);
 
     var last_point_x: c_int = 0;
     var last_point_y: c_int = 0;
-    const len: usize = if (buffer.len > window_width) window_width else buffer.len;
+    const len: usize = if (buff16.len > window_width) window_width else buff16.len;
     for (0..len) |i| {
         const c_i: c_int = @intCast(i);
-        std.debug.print("{d} \n", .{buffer[i]});
-        const c_y: c_int = @intCast(buffer[i]);
+        const c_y: c_int = @intCast(buff16[i]);
 
         // y is value of origin_y minus y
         // x is sum of x plus offset of origin x
@@ -134,15 +108,6 @@ pub fn renderAxes(renderer: *SDL.SDL_Renderer, n: c_int) Axes {
     };
 }
 
-// can be more generics
-pub fn sampleExtract(slice: []u8) i16 {
-    const first = slice[0];
-    const sec = slice[1];
-    const buff: [2]u8 = [2]u8{ first, sec };
-    const sample: i16 = std.mem.bytesToValue(i16, &buff);
-    return sample;
-}
-
 pub fn RenderExitButton(renderer: *SDL.SDL_Renderer, size: c_int) SDL.SDL_Rect {
     const rectButton = SDL.SDL_Rect{
         .x = 0,
@@ -154,11 +119,61 @@ pub fn RenderExitButton(renderer: *SDL.SDL_Renderer, size: c_int) SDL.SDL_Rect {
     _ = SDL.SDL_RenderFillRect(renderer, &rectButton);
     return rectButton;
 }
+pub fn RenderPlayButton(renderer: *SDL.SDL_Renderer, size: c_int) SDL.SDL_Rect {
+    const rectButton = SDL.SDL_Rect{
+        .x = window_width - size,
+        .y = 0,
+        .h = size,
+        .w = size,
+    };
+    _ = SDL.SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+    _ = SDL.SDL_RenderFillRect(renderer, &rectButton);
+    return rectButton;
+}
 
-pub fn isCloseApp(event: SDL.SDL_Event, rect: SDL.SDL_Rect) bool {
-    if (event.button.x > rect.x) {
-        std.debug.print("HELLO", .{});
+pub fn isMouseInRec(event: SDL.SDL_Event, rect: SDL.SDL_Rect) bool {
+    if (event.button.x > rect.x and
+        event.button.x < rect.w + rect.x and
+        event.button.y > rect.y and
+        event.button.y < rect.h + rect.y)
+    {
         return true;
     }
     return false;
+}
+
+pub fn eventLoop(renderer: *SDL.SDL_Renderer, buffer: []u8, params: types.SoundParams) void {
+    const exitRect = RenderExitButton(renderer, 20);
+    const playRect = RenderPlayButton(renderer, 20);
+    SDL.SDL_RenderPresent(renderer);
+
+    _ = SDL.SDL_RenderClear(renderer);
+    // render all element
+    // maybe call again for dynamic content
+    var exit = false;
+    var event: SDL.SDL_Event = undefined;
+    while (!exit) {
+
+        // Handle events
+        while (SDL.SDL_PollEvent(&event) != 0) {
+            switch (event.type) {
+                SDL.SDL_QUIT => {
+                    exit = true;
+                    break;
+                },
+                SDL.SDL_MOUSEBUTTONDOWN => {
+                    if (isMouseInRec(event, exitRect)) {
+                        SDL.SDL_Quit();
+                        std.process.exit(1);
+                        break;
+                    }
+                    if (isMouseInRec(event, playRect)) {
+                        std.debug.print("playing sound", .{});
+                        try PlayBuffer(buffer, params);
+                    }
+                },
+                else => {},
+            }
+        }
+    }
 }

@@ -7,12 +7,7 @@ const tobytes = types.intToBytes;
 const Instrument = types.Instrument;
 const Note = types.Note;
 
-// try implement an array of buffers
-// array of offsets to duplicate sin wave
-pub fn generateSound(buffer: []u8, params: SoundParams, seq: []types.Note) !void {
-
-    // move this to play function
-    // need one offset per wave
+pub fn chunk_by_seq_len(buffer: []u8, params: SoundParams, seq: []types.Note) !void {
     const allocator = params.allocator;
     const offset1: *f64 = try allocator.create(f64);
     const offset0: *f64 = try allocator.create(f64);
@@ -28,14 +23,12 @@ pub fn generateSound(buffer: []u8, params: SoundParams, seq: []types.Note) !void
     const buffer_chunk_num: usize = seq.len;
     for (0..buffer_chunk_num) |i| {
         const sliced_buff = buffer[i * buffer.len / buffer_chunk_num .. (i + 1) * buffer.len / buffer_chunk_num];
-        try innerLoop(sliced_buff, seq[i], offsetBoxes, params);
+        try chunk_by_chunk_len(sliced_buff, seq[i], offsetBoxes, params);
     }
-
-    // try bufferToCSV(buffer);
     return;
 }
 
-pub fn innerLoop(buffer: []u8, note: types.Note, offsetBoxes: []*f64, params: SoundParams) !void {
+pub fn chunk_by_chunk_len(buffer: []u8, note: types.Note, offsetBoxes: []*f64, params: SoundParams) !void {
     const allocator = params.allocator;
     const iter_num_usize = buffer.len / params.chunk_len;
     const chunk_size: usize = @intCast(params.chunk_len);
@@ -53,6 +46,7 @@ pub fn innerLoop(buffer: []u8, note: types.Note, offsetBoxes: []*f64, params: So
     @memcpy(buffer[iter_num_usize * chunk_size .. iter_num_usize * chunk_size + mod], buff);
 }
 
+// SOUND IS CREATED AS VAL(I16) AND PASSED AS BYTES(U8)
 pub fn soundToBuffer(note: types.Note, buffer_len: usize, offsetBoxes: []*f64, params: SoundParams, shift: bool) ![]u8 {
     const allocator = params.allocator;
     const buff = try allocator.alloc(u8, buffer_len);
@@ -68,7 +62,17 @@ pub fn soundToBuffer(note: types.Note, buffer_len: usize, offsetBoxes: []*f64, p
     return buff;
 }
 
-// pass the number of notes ? or number of wave
+fn calcWave(note: Note, sin_offset: *f64, sr_f64: f64, shift: f64) f64 {
+    return switch (note.instrument) {
+        Instrument.sinWave => sinFunc(sin_offset, note.note, sr_f64, shift),
+        Instrument.squareWave => squareFunc(sin_offset, note.note, sr_f64, shift),
+        Instrument.triangleWave => triangleFunc(sin_offset, note.note, sr_f64, shift),
+        Instrument.silence => silenceFunc(sin_offset, note.note, sr_f64, shift),
+    };
+}
+
+// MATH FUNCTIONS TO BUILD THE WAVE
+
 pub fn sinFunc(offset: *f64, note: f64, sr_f64: f64, shift: f64) f64 {
     const phase_increment: f64 = 2 * math.pi * note / sr_f64;
     const sin_val = @sin(offset.* + shift);
@@ -76,7 +80,6 @@ pub fn sinFunc(offset: *f64, note: f64, sr_f64: f64, shift: f64) f64 {
     return sin_val;
 }
 
-// the tone aint right
 pub fn squareFunc(offset: *f64, note: f64, sr_f64: f64, shift: f64) f64 {
     const phase_increment: f64 = 2 * math.pi * note / sr_f64;
     const sin_val: f64 = if (@sin(offset.* + shift) > 0) 1 else -1;
@@ -100,13 +103,4 @@ pub fn triangleFunc(offset: *f64, note: f64, sr_f64: f64, shift: f64) f64 {
 
     const phase = 2.0 * offset.* - 1.0;
     return if (phase < 0.0) -phase else phase;
-}
-
-fn calcWave(note: Note, sin_offset: *f64, sr_f64: f64, shift: f64) f64 {
-    return switch (note.instrument) {
-        Instrument.sinWave => sinFunc(sin_offset, note.note, sr_f64, shift),
-        Instrument.squareWave => squareFunc(sin_offset, note.note, sr_f64, shift),
-        Instrument.triangleWave => triangleFunc(sin_offset, note.note, sr_f64, shift),
-        Instrument.silence => silenceFunc(sin_offset, note.note, sr_f64, shift),
-    };
 }

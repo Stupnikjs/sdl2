@@ -2,7 +2,7 @@ const std = @import("std");
 const endian = @import("builtin").cpu.arch.endian();
 const math = std.math;
 const tobytes = @import("types.zig").intToBytes;
-const generateSound = @import("player.zig").generateSound;
+const chunk_by_seq_len = @import("audio.zig").chunk_by_seq_len;
 const SoundParams = types.SoundParams;
 const types = @import("types.zig");
 const Note = types.Note;
@@ -66,7 +66,7 @@ pub fn buildBuffer(params: SoundParams, seq: []Note) ![]u8 {
     const buffer: []u8 = try allocator.alloc(u8, params.sr * seq.len);
 
     // sound to buffer
-    try generateSound(buffer, params, seq);
+    try chunk_by_seq_len(buffer, params, seq);
     return buffer;
 }
 
