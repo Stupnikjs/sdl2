@@ -74,7 +74,7 @@ pub fn uiWrapper(buffer: []u8, params: types.SoundParams) !void {
 pub fn BufferPlot(renderer: *SDL.SDL_Renderer, buffer: []u8) !void {
     const allocator = std.heap.page_allocator;
     var buff16 = try buf.buffu8ToI16(buffer, allocator);
-    buff16 = try buf.normalizeBuff(i16, buff16, allocator, 300);
+    buff16 = try buf.normalizeBuff(i16, buff16, allocator, 200);
     defer allocator.free(buff16);
     const Ax = renderAxes(renderer, 20);
 
@@ -90,6 +90,9 @@ pub fn BufferPlot(renderer: *SDL.SDL_Renderer, buffer: []u8) !void {
         // y is value of origin_y minus y
         // x is sum of x plus offset of origin x
         _ = SDL.SDL_RenderDrawLine(renderer, Ax.origin_x + last_point_x, Ax.y - last_point_y, Ax.origin_x + c_i, Ax.y - c_y);
+        if (i % 16 == 0) {
+            _ = SDL.SDL_RenderDrawCircle();
+        }
         last_point_x = c_i;
         last_point_y = c_y;
     }
