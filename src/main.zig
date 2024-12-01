@@ -16,11 +16,13 @@ pub fn main() !void {
     const buffer_audio = try sdl.buildBuffer(paramsA, seq);
     _ = buffer_audio;
     var commandBuffer = try paramsA.allocator.alloc(u8, 2048);
+    var bufferAudio:[]u8 = undefined;
+
     while (true) {
         std.debug.print(":>", .{});
         const len = try cli.ParseUserInput(commandBuffer);
         std.debug.print("{s}", .{commandBuffer[0..len]});
-        const command = try cli.Parser(commandBuffer[0..len], paramsA.allocator);
+        const command = try cli.Parser(commandBuffer[0..len], bufferAudio, paramsA.allocator);
 
         std.debug.print("{any} \n", .{command});
     }
