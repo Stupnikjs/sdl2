@@ -1,6 +1,6 @@
 const std = @import("std");
 const sdl = @import("sdl.zig");
-const ui = @import("ui.zig");
+const cli = @import("cli.zig");
 const types = @import("types.zig");
 const SoundParams = types.SoundParams;
 const audio = @import("audio.zig");
@@ -14,5 +14,14 @@ pub fn main() !void {
     var Asin: types.Note = types.Note.init(types.Instrument.sinWave, 200, false);
     const seq = try Asin.PlayRange(false, std.heap.page_allocator);
     const buffer_audio = try sdl.buildBuffer(paramsA, seq);
-    try ui.uiWrapper(buffer_audio, paramsA);
+    _ = buffer_audio;
+    var commandBuffer = try paramsA.allocator.alloc(u8, 2048);
+    while (true) {
+        std.debug.print(":>", .{});
+        const len = try cli.ParseUserInput(commandBuffer);
+        std.debug.print("{s}", .{commandBuffer[0..len]});
+        const command = try cli.Parser(commandBuffer[0..len], paramsA.allocator);
+
+        std.debug.print("{any} \n", .{command});
+    }
 }
