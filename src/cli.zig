@@ -18,7 +18,7 @@ pub const mainCommand = enum {
 
 pub const Command = struct {
     main: ?mainCommand,
-    arg: ?std.StringHashMap(u16),
+    arg: ?std.StringHashMap([]u8),
 
     pub fn init() Command {
         return .{
@@ -69,3 +69,9 @@ pub fn extractMainCmd(cmdstr: []u8, command: *Command) !usize {
     if (strequal(u8, main, "reset")) command.main = mainCommand.reset;
     return main.len;
 }
+
+
+
+// extract args are strings 
+// list takes one arg instrument or effect 
+// init takes one arg that is the sample len in milliseconds
