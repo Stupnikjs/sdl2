@@ -75,3 +75,13 @@ pub fn extractMainCmd(cmdstr: []u8, command: *Command) !usize {
 // extract args are strings 
 // list takes one arg instrument or effect 
 // init takes one arg that is the sample len in milliseconds
+
+
+pub fn nextArg(cmdStr:[]u8) arg { 
+   for (cmdStr) |c| {
+     
+
+
+}
+
+}
