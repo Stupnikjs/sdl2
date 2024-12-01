@@ -2,6 +2,10 @@
 const std = @import("std");
 const strequal = std.mem.eql;
 
+pub const Token = struct {
+    tokType: tokType,
+    value: []const u8,
+};
 pub const mainCommand = enum {
     init,
     play,
@@ -22,6 +26,7 @@ pub const Command = struct {
             .arg = null,
         };
     }
+    pub fn nextToken(self: *Command) Token {}
 };
 
 pub fn ParseUserInput(commandBuffer: []u8) !usize {
@@ -42,18 +47,19 @@ pub fn Parser(cmdstr: []u8, allocator: std.mem.Allocator) !Command {
     // help
     // const command = try allocator.create(Command);
     var command = Command.init();
-    try extractMainCmd(cmdstr, &command);
+    const extracted = try extractMainCmd(cmdstr, &command);
+
     return command;
 }
 
-pub fn extractMainCmd(cmdstr: []u8, command: *Command) !void {
+pub fn extractMainCmd(cmdstr: []u8, command: *Command) !usize {
     var list = std.ArrayList(u8).init(std.heap.page_allocator);
     defer list.deinit();
     for (cmdstr) |c| {
-        if (c == ' ' or c == '\n') break else try list.append(c);
+        if (c == ' ' or c == '\n' or c == 13) break;
+        try list.append(c);
     }
-    const main = try list.toOwnedSlice();
-    std.debug.print("main {s}| \n", .{main});
+    const main = list.items;
     if (strequal(u8, main, "exit")) command.main = mainCommand.exit;
     if (strequal(u8, main, "help")) command.main = mainCommand.help;
     if (strequal(u8, main, "list")) command.main = mainCommand.list;
@@ -61,6 +67,5 @@ pub fn extractMainCmd(cmdstr: []u8, command: *Command) !void {
     if (strequal(u8, main, "gen")) command.main = mainCommand.gen;
     if (strequal(u8, main, "init")) command.main = mainCommand.init;
     if (strequal(u8, main, "reset")) command.main = mainCommand.reset;
-
-    std.debug.print("{any}", .{command});
+    return main.len;
 }
