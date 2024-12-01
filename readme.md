@@ -1,3 +1,24 @@
+// CLI TOOL TO GENERATE SAMPLES 
+
+
+// RANDOM MODE TO GENERATE WTF SAMPLES 
+
+
+// DIFFERENTS BASE INSTRUMENTS 
+ - snare 
+ - kick 
+ - sinwave 
+ - square wave 
+ - ect 
+
+ // APPLY SOME EFFECT 
+ - chorus
+ - reverb 
+
+// SET UP SOME PARAMS IN CLI 
+- sample len 
+- 
+
 
 Positions   Sample Value         Description
 1 - 4       "RIFF"               Marks the file as a riff file. Characters are each 1. byte long.
