@@ -17,10 +17,11 @@ pub const mainCommand = enum {
 };
 
 pub const Command = struct {
+    cmdStr:[]const u8,
     main: ?mainCommand,
     arg: ?std.StringHashMap([]u8),
 
-    pub fn init() Command {
+    pub fn init(cmdstr) Command {
         return .{
             .main = null,
             .arg = null,
