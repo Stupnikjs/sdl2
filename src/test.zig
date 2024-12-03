@@ -18,7 +18,13 @@ test "split space" {
 
 test "trim right" {
     const allocator = std.heap.page_allocator;
-    const simple = try string.trimRight("nosp  ", allocator);
-    try expect(std.mem.eql(u8, simple, "nosp"));
+    const simple = try string.trimRight("  nosp  ", allocator);
+    try expect(std.mem.eql(u8, simple, "  nosp"));
+    //allocator.free(splited);
+}
+test "trim right hard" {
+    const allocator = std.heap.page_allocator;
+    const simple = try string.trimRight(" nosp uzzu ", allocator);
+    try expect(std.mem.eql(u8, simple, " nosp uzzu"));
     //allocator.free(splited);
 }

@@ -36,8 +36,8 @@ pub fn trimRight(str: []const u8, allocator: std.mem.Allocator) ![]const u8 {
     var started = false;
     var i = str.len;
     while (i > 0) {
-        if (str[i - 1] != ' ' and !started) started = true;
         if (started) try list.append(str[i - 1]);
+        if (str[i - 1] != ' ' and !started) started = true;
         i -= 1;
     }
 

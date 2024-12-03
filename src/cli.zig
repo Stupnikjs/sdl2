@@ -7,11 +7,12 @@ pub const Command = enum { exit, help, list, gen, play, init, reset };
 
 pub fn ParseCommand(cmdStr: []const u8) !void {
     const allocator = std.heap.page_allocator;
-    // const trimedLeft = try string.trimLeft(cmdStr, allocator);
-    const trimed = try string.trimRight(cmdStr, allocator);
-    std.debug.print("splited {s}|  \n", .{trimed});
+    const trimedLeft = try string.trimLeft(cmdStr, allocator);
+    const trimed = try string.trimRight(trimedLeft, allocator);
+
     const splited = try string.splitSpace(trimed, allocator);
-    // std.debug.print("splited {s} \n", .{splited});
+
+    std.debug.print("splited {s} \n", .{splited});
 
     const command: Command = try GetCommand(splited[0]);
 
