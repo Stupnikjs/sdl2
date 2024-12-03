@@ -6,11 +6,12 @@ const testing = std.testing;
 const expect = testing.expect;
 const wav = @import("wav.zig");
 const buf = @import("buf.zig");
+const string = @import("string.zig");
 
 test "split space" {
     const allocator = std.heap.page_allocator;
-    const splited = try cli.splitSpace("mem mem mem", allocator);
-    defer allocator.free(splited);
-    std.debug.print("splited {s} \n", .{splited});
-    try (expect(splited.len == 3));
+    const simple = try string.splitSpace("nospace BUT wait here some space ", allocator);
+    std.debug.print("{s}", .{simple});
+    try expect(simple.len == 6);
+    //allocator.free(splited);
 }
