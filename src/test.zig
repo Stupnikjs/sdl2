@@ -15,3 +15,10 @@ test "split space" {
     try expect(simple.len == 6);
     //allocator.free(splited);
 }
+
+test "trim right" {
+    const allocator = std.heap.page_allocator;
+    const simple = try string.trimRight("nosp  ", allocator);
+    try expect(std.mem.eql(u8, simple, "nosp"));
+    //allocator.free(splited);
+}
