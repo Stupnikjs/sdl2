@@ -7,7 +7,7 @@ const tobytes = types.intToBytes;
 const Instrument = types.Instrument;
 const Note = types.Note;
 
-pub fn chunk_by_seq_len(buffer: []u8, params: SoundParams, seq: []types.Note) !void {
+pub fn chunk_by_chunk_len(buffer: []u8, note: types.Note, params: SoundParams) !void {
     const allocator = params.allocator;
     const offset1: *f64 = try allocator.create(f64);
     const offset0: *f64 = try allocator.create(f64);
@@ -18,18 +18,6 @@ pub fn chunk_by_seq_len(buffer: []u8, params: SoundParams, seq: []types.Note) !v
     const offsetBoxes = try allocator.alloc(*f64, 2);
     offsetBoxes[0] = offset0;
     offsetBoxes[1] = offset1;
-
-    if (@mod(buffer.len, seq.len) != 0) return types.bufferError.invalidLength;
-    const buffer_chunk_num: usize = seq.len;
-    for (0..buffer_chunk_num) |i| {
-        const sliced_buff = buffer[i * buffer.len / buffer_chunk_num .. (i + 1) * buffer.len / buffer_chunk_num];
-        try chunk_by_chunk_len(sliced_buff, seq[i], offsetBoxes, params);
-    }
-    return;
-}
-
-pub fn chunk_by_chunk_len(buffer: []u8, note: types.Note, offsetBoxes: []*f64, params: SoundParams) !void {
-    const allocator = params.allocator;
     const iter_num_usize = buffer.len / params.chunk_len;
     const chunk_size: usize = @intCast(params.chunk_len);
     // need one more iteration for the rest of the chunk

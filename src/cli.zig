@@ -2,6 +2,7 @@
 const std = @import("std");
 const string = @import("string.zig");
 const strequal = std.mem.eql;
+const sdl = @import("sdl.zig");
 
 pub const Command = enum { exit, help, list, gen, play, init, save };
 
@@ -51,7 +52,7 @@ pub fn genSound(buffer: *[]u8, args: [][]const u8, allocator: std.mem.Allocator)
 
 // needs buffer len to call sound making func
 pub fn soundFromMap(buffer: *[]u8, map: std.StringHashMap([]const u8)) !void {
-    _ = buffer;
+    buffer.* = sdl.buildBuffer(params, seq);
     _ = map;
 }
 
