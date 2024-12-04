@@ -14,9 +14,10 @@ pub fn main() !void {
     const allocator = std.heap.page_allocator;
     const buffer = try allocator.alloc(u8, 1024);
     const stdin = std.io.getStdIn().reader();
+    const audioBuff: ?[]u8 = undefined;
     while (true) {
         std.debug.print(":>", .{});
-        const buff = try stdin.readUntilDelimiter(buffer, '\n');
-        try cli.ParseCommand(buff);
+        const cmdStr = try stdin.readUntilDelimiter(buffer, '\n');
+        try cli.ParseCommand(cmdStr, audioBuff);
     }
 }
