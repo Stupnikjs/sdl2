@@ -22,7 +22,7 @@ pub fn trimLeft(str: []const u8, allocator: std.mem.Allocator) ![]const u8 {
     var list = std.ArrayList(u8).init(allocator);
     var started = false;
     for (str) |c| {
-        if (c != ' ' and !started) started = true;
+        if (c != ' ' and c != '\n' and c != 13 and !started) started = true;
         if (started) {
             try list.append(c);
         }
@@ -30,22 +30,28 @@ pub fn trimLeft(str: []const u8, allocator: std.mem.Allocator) ![]const u8 {
     return list.toOwnedSlice();
 }
 
-pub fn trimRight(str: []const u8, allocator: std.mem.Allocator) ![]const u8 {
+pub fn reverseString(str: []const u8, allocator: std.mem.Allocator) ![]const u8 {
     var list = std.ArrayList(u8).init(allocator);
-    var result = std.ArrayList(u8).init(allocator);
-    var started = false;
     var i = str.len;
     while (i > 0) {
-        if (started) try list.append(str[i - 1]);
-        if (str[i - 1] != ' ' and !started) started = true;
+        try list.append(str[i - 1]);
         i -= 1;
     }
+    return list.toOwnedSlice();
+}
 
-    i = list.items.len;
-    while (i > 0) {
-        try result.append(list.items[i - 1]);
-        i -= 1;
-    }
-    list.deinit();
-    return result.toOwnedSlice();
+pub fn trimRight(str: []const u8, allocator: std.mem.Allocator) ![]const u8 {
+    const reversed = try reverseString(str, allocator);
+    defer allocator.free(reversed);
+    const trimed = try trimLeft(reversed, allocator);
+    defer allocator.free(trimed);
+    const rereversed = try reverseString(trimed, allocator);
+    return rereversed;
+}
+
+pub fn trimSpace(str: []const u8, allocator: std.mem.Allocator) ![]const u8 {
+    const trimedLeft = try trimLeft(str, allocator);
+    defer allocator.free(trimedLeft);
+    const trimed = try trimRight(trimedLeft, allocator);
+    return trimed;
 }

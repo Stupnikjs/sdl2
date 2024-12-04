@@ -26,5 +26,6 @@ test "trim right hard" {
     const allocator = std.heap.page_allocator;
     const simple = try string.trimRight(" nosp uzzu ", allocator);
     try expect(std.mem.eql(u8, simple, " nosp uzzu"));
+    try expect(simple.len == 10);
     //allocator.free(splited);
 }
