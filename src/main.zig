@@ -15,10 +15,18 @@ pub fn main() !void {
     const buffer = try allocator.alloc(u8, 1024);
     const stdin = std.io.getStdIn().reader();
     var audioBuff = try allocator.alloc(u8, 2048 * 4);
+    var params = SoundParams.init(
+        44100,
+        1024,
+        3000,
+        440,
+        types.Instrument.sinWave,
+        allocator,
+    );
     // [*] for fixed size array
     while (true) {
         std.debug.print(":>", .{});
         const cmdStr = try stdin.readUntilDelimiter(buffer, '\n');
-        try cli.ParseCommand(cmdStr, &audioBuff);
+        try cli.ParseCommand(cmdStr, &audioBuff, &params);
     }
 }

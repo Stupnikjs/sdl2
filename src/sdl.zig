@@ -2,7 +2,7 @@ const std = @import("std");
 const endian = @import("builtin").cpu.arch.endian();
 const math = std.math;
 const tobytes = @import("types.zig").intToBytes;
-const chunk_by_chunk_len = @import("audio.zig").chunk_by_seq_len;
+const chunk_by_chunk_len = @import("audio.zig").chunk_by_chunk_len;
 const SoundParams = types.SoundParams;
 const types = @import("types.zig");
 const Note = types.Note;
@@ -60,13 +60,13 @@ pub fn InitSpec(sr: usize, samples: u16) SDL.SDL_AudioSpec {
     };
 }
 
-pub fn buildBuffer(params: SoundParams, seq: []Note) ![]u8 {
+pub fn buildBuffer(params: SoundParams) ![]u8 {
     var allocator = params.allocator;
     // const buffer = try allocator.alloc(u8, audio_len * sample_byte_num);
-    const buffer: []u8 = try allocator.alloc(u8, params.sr * seq.len);
+    const buffer: []u8 = try allocator.alloc(u8, params.sr * 4);
 
     // sound to buffer
-    try chunk_by_chunk_len(buffer, params, seq);
+    try chunk_by_chunk_len(buffer, params);
     return buffer;
 }
 

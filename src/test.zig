@@ -29,3 +29,16 @@ test "trim right hard" {
     try expect(simple.len == 10);
     //allocator.free(splited);
 }
+
+test "sld play" {
+    const params = types.SoundParams.init(
+        44100,
+        1024,
+        3000,
+        440,
+        types.Instrument.sinWave,
+        std.heap.page_allocator,
+    );
+    const buffer = try sdl.buildBuffer(params);
+    try sdl.SDL_PlayBuffer(buffer, params);
+}

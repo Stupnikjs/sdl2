@@ -27,12 +27,16 @@ pub const SoundParams = struct {
     sr: usize,
     chunk_len: u16,
     amplitude: f64,
+    frequency: f64,
+    instrument: Instrument,
     allocator: std.mem.Allocator,
-    pub fn init(sr: usize, chunk_len: u16, allocator: std.mem.Allocator) SoundParams {
+    pub fn init(sr: usize, chunk_len: u16, amplitude: f64, frequency: f64, instrument: Instrument, allocator: std.mem.Allocator) SoundParams {
         return .{
             .sr = sr,
             .chunk_len = chunk_len,
-            .amplitude = 30000,
+            .amplitude = amplitude,
+            .frequency = frequency,
+            .instrument = instrument,
             .allocator = allocator,
         };
     }
