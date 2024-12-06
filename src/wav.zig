@@ -87,7 +87,7 @@ pub const WavHeader = struct {
     pub fn read(buff: []u8) WavHeader {
         _ = buff;
     }
-    pub fn WriteWav(self: *WavHeader, buffer: []u8, filename: []u8) !void {
+    pub fn WriteWav(self: *WavHeader, buffer: []u8, filename: []const u8) !void {
         const file = try std.fs.cwd().createFile(filename, .{});
         defer file.close();
         var allocator = std.heap.page_allocator;

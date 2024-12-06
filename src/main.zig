@@ -25,7 +25,7 @@ pub fn main() !void {
     );
     // [*] for fixed size array
     while (true) {
-        std.debug.print(":>", .{});
+        std.debug.print(":> ", .{});
         const cmdStr = try stdin.readUntilDelimiter(buffer, '\n');
         try cli.ParseCommand(cmdStr, &audioBuff, &params);
     }
