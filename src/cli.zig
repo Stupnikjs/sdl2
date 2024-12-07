@@ -29,6 +29,7 @@ pub fn ParseCommand(cmdStr: []const u8, buffer: *[]u8, params: *types.SoundParam
 }
 
 pub fn GetCommand(str: []const u8) !Command {
+    std.debug.print("{d} \n", .{str});
     if (strequal(u8, str, "exit")) return Command.exit;
     if (strequal(u8, str, "help")) return Command.help;
     if (strequal(u8, str, "init")) return Command.init;
@@ -50,14 +51,28 @@ pub fn genSound(buffer: *[]u8, args: [][]const u8, params: *types.SoundParams, a
             try map.put(args[i * 2], args[i * 2 + 1]);
         }
     }
-    try soundFromMap(buffer, map, params.*);
+    try soundFromMap(buffer, map, params);
 }
 
 // needs buffer len to call sound making func
-pub fn soundFromMap(buffer: *[]u8, map: std.StringHashMap([]const u8), params: types.SoundParams) !void {
+
+pub fn paramsFromMap(map: std.StringHashMap([]const u8), params: *types.SoundParams) !void {
+    // last char of command being ignored
+    if (map.get("-i") != null) {
+        std.debug.print("{s}", .{map.get("-i").?});
+        params.instrument = types.Instrument.sinWave;
+    }
+    if (map.get("-f") != null) {
+        const freq: f64 = try std.fmt.parseFloat(f64, map.get("-f").?);
+        std.debug.print("{s} \n", .{map.get("-f").?});
+        params.frequency = freq;
+    } else return error.GenCommandMalformed;
+}
+
+pub fn soundFromMap(buffer: *[]u8, map: std.StringHashMap([]const u8), params: *types.SoundParams) !void {
     // func paramsFromMap
-    buffer.* = try sdl.buildBuffer(params);
-    _ = map;
+    try paramsFromMap(map, params);
+    buffer.* = try sdl.buildBuffer(params.*);
 }
 
 pub fn initFunc(buffer: *[]u8, allocator: std.mem.Allocator) !void {

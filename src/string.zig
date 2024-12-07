@@ -22,14 +22,12 @@ pub fn trimLeft(str: []const u8, allocator: std.mem.Allocator) ![]const u8 {
     var list = std.ArrayList(u8).init(allocator);
     var started = false;
     for (str) |c| {
-        std.debug.print("{!} \n", .{started});
+        if (c != ' ' and c != '\n' and c != 13 and !started) {
+            started = true;
+        }
         if (started) {
             try list.append(c);
             continue;
-        }
-
-        if ((c != ' ' and c != '\n' and c != 13) and !started) {
-            started = true;
         }
     }
     return list.toOwnedSlice();
