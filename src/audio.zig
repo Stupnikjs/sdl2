@@ -34,7 +34,7 @@ pub fn chunk_by_chunk_len(buffer: []u8, params: SoundParams) !void {
     @memcpy(buffer[iter_num_usize * chunk_size .. iter_num_usize * chunk_size + mod], buff);
 }
 
-// SOUND IS CREATED AS VAL(I16) AND PASSED AS BYTES(U8)
+
 pub fn soundToBuffer(buffer_len: usize, offsetBoxes: []*f64, params: SoundParams) ![]u8 {
     const allocator = params.allocator;
     const buff = try allocator.alloc(u8, buffer_len);
