@@ -12,9 +12,7 @@ pub fn ParseCommand(cmdStr: []const u8, buffer: *[]u8, params: *types.SoundParam
     const allocator = std.heap.page_allocator;
     const trimedLeft = try string.trimLeft(cmdStr, allocator);
     const trimed = try string.trimRight(trimedLeft, allocator);
-    // test here for no args command (exit)
     const splited = try string.splitSpace(trimed, allocator);
-    std.debug.print("{s} \n", .{splited[0]});
     const command: Command = try GetCommand(splited[0]);
 
     switch (command) {
@@ -63,6 +61,7 @@ pub fn paramsFromMap(map: std.StringHashMap([]const u8), params: *types.SoundPar
         params.instrument = types.Instrument.sinWave;
     }
     if (map.get("-f") != null) {
+        std.debug.print("f:{s} \n", .{map.get("-f").?});
         const freq: f64 = try std.fmt.parseFloat(f64, map.get("-f").?);
         std.debug.print("{s} \n", .{map.get("-f").?});
         params.frequency = freq;

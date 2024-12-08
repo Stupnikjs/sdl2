@@ -5,6 +5,7 @@ pub fn splitSpace(str: []const u8, allocator: std.mem.Allocator) ![][]const u8 {
     var res_list = std.ArrayList([]const u8).init(allocator);
     for (str, 0..str.len) |c, i| {
         if (i == str.len - 1) {
+            try list.append(c);
             try res_list.append(try list.toOwnedSlice());
             break;
         }

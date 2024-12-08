@@ -8,14 +8,6 @@ const wav = @import("wav.zig");
 const buf = @import("buf.zig");
 const string = @import("string.zig");
 
-test "split space" {
-    const allocator = std.heap.page_allocator;
-    const simple = try string.splitSpace("nospace BUT wait here some space ", allocator);
-    std.debug.print("{s}", .{simple});
-    try expect(simple.len == 6);
-    //allocator.free(splited);
-}
-
 test "trim right" {
     const allocator = std.heap.page_allocator;
     const simple = try string.trimRight("  nosp  ", allocator);
@@ -72,4 +64,10 @@ test "sld play" {
     );
     const buffer = try sdl.buildBuffer(params);
     try sdl.SDL_PlayBuffer(buffer, params);
+}
+
+test "split space" {
+    const splited = try string.splitSpace("hello world from here", std.heap.page_allocator);
+    try expect(splited.len == 4);
+    try expect(std.mem.eql(u8, splited[3], "here"));
 }
