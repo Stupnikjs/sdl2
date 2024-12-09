@@ -21,13 +21,12 @@ pub fn ParseCommand(cmdStr: []const u8, buffer: *[]u8, params: *types.SoundParam
         .play => try playFunc(buffer.*, params.*),
         .gen => try genSound(buffer, splited[1..], params, allocator),
         .init => try initFunc(buffer, allocator),
-        .save => try saveFunc(buffer.*),
+        .save => try saveFunc(buffer.*, splited[1..]),
         else => std.debug.print("something wrong happened", .{}),
     }
 }
 
 pub fn GetCommand(str: []const u8) !Command {
-    std.debug.print("{d} \n", .{str});
     if (strequal(u8, str, "exit")) return Command.exit;
     if (strequal(u8, str, "help")) return Command.help;
     if (strequal(u8, str, "init")) return Command.init;
@@ -38,7 +37,8 @@ pub fn GetCommand(str: []const u8) !Command {
 }
 
 pub fn helpFunc() void {
-    std.debug.print("printing help", .{});
+    const helpMsg = "Here is help msg";
+    std.debug.print("{s} \n", .{helpMsg});
 }
 
 pub fn genSound(buffer: *[]u8, args: [][]const u8, params: *types.SoundParams, allocator: std.mem.Allocator) !void {
@@ -65,7 +65,7 @@ pub fn paramsFromMap(map: std.StringHashMap([]const u8), params: *types.SoundPar
         const freq: f64 = try std.fmt.parseFloat(f64, map.get("-f").?);
         std.debug.print("{s} \n", .{map.get("-f").?});
         params.frequency = freq;
-    } else return error.GenCommandMalformed;
+    } else return error.CommandMalformed;
 }
 
 pub fn soundFromMap(buffer: *[]u8, map: std.StringHashMap([]const u8), params: *types.SoundParams) !void {
@@ -86,8 +86,25 @@ pub fn playFunc(buffer: []u8, params: types.SoundParams) !void {
     try sdl.SDL_PlayBuffer(buffer, params);
 }
 
-pub fn saveFunc(buffer: []u8) !void {
+pub fn saveFunc(buffer: []u8, args: [][]const u8) !void {
+    const allocator = std.heap.page_allocator;
+    const map = try mapFormArgs(args, allocator);
+
+    var name: []const u8 = undefined;
+    if (map.get("-f") == null) return error.CommandMalformed else name = map.get("-f").?;
     const len: u32 = @intCast(buffer.len);
     var header = wav.WavHeader.init(len);
-    try header.WriteWav(buffer, "out.wav");
+    try header.WriteWav(buffer, name);
+    // allocator.free(map);
+}
+
+pub fn mapFormArgs(args: [][]const u8, allocator: std.mem.Allocator) !std.StringHashMap([]const u8) {
+    var map = std.StringHashMap([]const u8).init(allocator);
+    // if (@mod(args.len, 2) != 0) return error.CommandMalformed; print wrong arg or smthing
+    for (0..args.len / 2) |i| {
+        if (args[i * 2][0] == '-') {
+            try map.put(args[i * 2], args[i * 2 + 1]);
+        }
+    }
+    return map;
 }

@@ -96,18 +96,6 @@ pub fn SDL_PlayBuffer(buffer: []u8, params: SoundParams) !void {
 // a slice is a pointer
 // buffer to big
 
-pub fn createSDLFpoint(x: f32, y: f32) SDL.struct_SDL_FPoint {
-    return .{
-        .x = x,
-        .y = y,
-    };
-}
-
-pub fn createSDLcolor(r: u8, g: u8, b: u8, a: u8) SDL.struct_SDL_Color {
-    return .{
-        .r = r,
-        .g = g,
-        .b = b,
-        .a = a,
-    };
+pub fn SDL_PlayWav(filename: []const u8) !void {
+    _ = filename;
 }
