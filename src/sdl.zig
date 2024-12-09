@@ -97,5 +97,11 @@ pub fn SDL_PlayBuffer(buffer: []u8, params: SoundParams) !void {
 // buffer to big
 
 pub fn SDL_PlayWav(filename: []const u8) !void {
-    _ = filename;
+    // SDL structures for WAV file handling
+    var audioSpec: SDL.SDL_AudioSpec = undefined;
+    var audio_buf: ?[*]u8 = null;
+    var audi_len: u32 = 0;
+
+    // Load WAV file
+    _ = SDL.SDL_LoadWAV(filename.ptr, &audioSpec, &audio_buf, &audi_len);
 }

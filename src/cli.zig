@@ -18,7 +18,7 @@ pub fn ParseCommand(cmdStr: []const u8, buffer: *[]u8, params: *types.SoundParam
     switch (command) {
         .exit => std.process.exit(1),
         .help => helpFunc(),
-        .play => try playFunc(buffer.*, params.*),
+        .play => try playFunc(buffer.*, splited[1..], params.*),
         .gen => try genSound(buffer, splited[1..], params, allocator),
         .init => try initFunc(buffer, allocator),
         .save => try saveFunc(buffer.*, splited[1..]),
@@ -82,7 +82,11 @@ pub fn initFunc(buffer: *[]u8, allocator: std.mem.Allocator) !void {
 // list takes one arg instrument or effect
 // init takes one arg that is the sample len in milliseconds
 
-pub fn playFunc(buffer: []u8, params: types.SoundParams) !void {
+pub fn playFunc(buffer: []u8, args: [][]const u8, params: types.SoundParams) !void {
+    const map = try mapFormArgs(args, params.allocator);
+    if (map.get("-f") != null) {
+        try sdl.SDL_PlayWav(map.get("-f").?);
+    }
     try sdl.SDL_PlayBuffer(buffer, params);
 }
 

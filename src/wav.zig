@@ -100,6 +100,6 @@ pub const WavHeader = struct {
     }
 };
 
-pub fn PlayWav(filename: []u8) !void {
+pub fn PlayWav(filename: []const u8) !void {
     _ = filename;
 }

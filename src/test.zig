@@ -64,7 +64,7 @@ test "sld play" {
     );
     const buffer = try sdl.buildBuffer(params);
     try sdl.SDL_PlayBuffer(buffer, params);
-    // wav.WavHeader.init(data_size: u32)
+    try sdl.SDL_PlayWav("file.wav");
 }
 
 test "split space" {
