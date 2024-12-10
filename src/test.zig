@@ -1,12 +1,12 @@
 const std = @import("std");
-const sdl = @import("sdl.zig");
+const sdl = @import("./sdl/sdl.zig");
 const types = @import("types.zig");
 const cli = @import("cli.zig");
 const testing = std.testing;
 const expect = testing.expect;
-const wav = @import("wav.zig");
-const buf = @import("buf.zig");
-const string = @import("string.zig");
+const wav = @import("./util/wav.zig");
+const buf = @import("./util/buf.zig");
+const string = @import("./util/string.zig");
 
 test "trim right" {
     const allocator = std.heap.page_allocator;
@@ -64,6 +64,7 @@ test "sld play" {
     );
     const buffer = try sdl.buildBuffer(params);
     try sdl.SDL_PlayBuffer(buffer, params);
+
     try sdl.SDL_PlayWav("file.wav");
 }
 

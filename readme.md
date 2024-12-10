@@ -37,3 +37,7 @@ Positions   Sample Value         Description
 
 
 //  build a 16 step buffer
+
+
+LOAD YOUR RHYTHMIC SAMPLES 
+THEN PLAY AROUND WITH SOME INSTRUMENT WITH CLI 

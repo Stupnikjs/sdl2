@@ -19,28 +19,32 @@ pub var audio_pos: ?[*]u8 = null; // Pointer to the audio buffer.
 pub var audio_len: usize = 0; // Remaining length of the sample to play.
 pub const sample_byte_num: usize = 1;
 pub var sec_len: f64 = 10;
+pub const fixed_len: c_int = 2048 * 100;
 
 fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) void {
     _ = ctx;
-
     const len_usize: usize = @intCast(len);
-    const audio_len_usize: usize = @intCast(audio_len);
-    const length = if (len > audio_len) audio_len_usize else len_usize;
-
     const audio_cast: [*c]u8 = @ptrCast(audio_pos);
+    var remaining = len_usize;
 
-    // smooth end of buffer read
-    const limit: f64 = 4000 * sec_len;
-    const limit_usize: usize = @intFromFloat(limit);
-    if (audio_len < limit_usize) {
-        _ = SDL.SDL_memset(stream, 0, length); // Copy audio data to stream
-        audio_len = 0;
-        return;
+    // while (remaining > 0) {
+    //     audio_pos = @ptrCast(audio_pos.? - audio_len);
+    //     audio_len = fixed_len;
+    // }
+    const length_to_copy = if (remaining > audio_len) audio_len else remaining;
+
+    // Copy audio data to stream
+    _ = SDL.SDL_memcpy(stream, audio_cast, length_to_copy);
+
+    // Advance position and decrease counters
+    std.debug.print("audio len {d} \n", .{audio_len});
+    if (audio_len == 0) {
+        audio_pos.? -= 2048 * 100;
+        audio_len = 2048 * 100;
     }
-
-    _ = SDL.SDL_memcpy(stream, audio_cast, length); // Copy audio data to stream
-    audio_pos.? += length;
-    audio_len -= length;
+    audio_pos.? += length_to_copy;
+    audio_len -= length_to_copy;
+    remaining -= length_to_copy;
 }
 
 fn sdlPanic() noreturn {
@@ -63,15 +67,13 @@ pub fn InitSpec(sr: usize, samples: u16) SDL.SDL_AudioSpec {
 
 pub fn buildBuffer(params: SoundParams) ![]u8 {
     var allocator = params.allocator;
-    // const buffer = try allocator.alloc(u8, audio_len * sample_byte_num);
-    const buffer: []u8 = try allocator.alloc(u8, params.sr * 4);
-
-    // sound to buffer
+    const buffer: []u8 = try allocator.alloc(u8, fixed_len);
     try chunk_by_chunk_len(buffer, params);
     return buffer;
 }
 
 // SDL call to a sound Buffer
+// AT THE END OF EACH LOOP REINITIALIZE BUFFER
 pub fn SDL_PlayBuffer(buffer: []u8, params: SoundParams) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
     // defer SDL.SDL_Quit();
