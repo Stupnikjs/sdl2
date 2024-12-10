@@ -1,7 +1,7 @@
 const std = @import("std");
 const SDL = @import("sdl.zig").SDL;
 const types = @import("types.zig");
-const buf = @import("buf.zig");
+const buf = @import("../util/buf.zig");
 const sdl = @import("sdl.zig");
 const PlayBuffer = @import("sdl.zig").SDL_PlayBuffer;
 

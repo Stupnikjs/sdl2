@@ -1,10 +1,11 @@
 // cli interface builder
 const std = @import("std");
-const string = @import("string.zig");
-const strequal = std.mem.eql;
+const string = @import("/util/string.zig");
 const sdl = @import("sdl.zig");
-const wav = @import("wav.zig");
+const wav = @import("/util/wav.zig");
 const types = @import("types.zig");
+
+const strequal = std.mem.eql;
 
 pub const Command = enum { exit, help, list, gen, play, init, save };
 

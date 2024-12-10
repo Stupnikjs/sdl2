@@ -27,6 +27,8 @@ pub fn main() !void {
     while (true) {
         std.debug.print(":> ", .{});
         const cmdStr = try stdin.readUntilDelimiter(buffer, '\n');
-        try cli.ParseCommand(cmdStr, &audioBuff, &params);
+        cli.ParseCommand(cmdStr, &audioBuff, &params) catch |err| {
+            if (err == error.CommandMalformed) std.debug.print("Command is malformed \n", .{});
+        };
     }
 }
