@@ -2,7 +2,7 @@ const std = @import("std");
 const builtin = @import("builtin");
 const math = std.math;
 const tobytes = @import("types.zig").intToBytes;
-const api = @import("sdl.zig");
+const api = @import("/sdl/sdl.zig");
 const types = @import("types.zig");
 const pow = math.pow;
 
@@ -14,6 +14,7 @@ pub const Instrument = enum {
     sinWave,
     squareWave,
     triangleWave,
+    kick,
     silence,
 };
 

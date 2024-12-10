@@ -1,10 +1,10 @@
 const std = @import("std");
 const endian = @import("builtin").cpu.arch.endian();
 const math = std.math;
-const tobytes = @import("types.zig").intToBytes;
-const chunk_by_chunk_len = @import("audio.zig").chunk_by_chunk_len;
+const types = @import("../types.zig");
+const tobytes = types.intToBytes;
+const chunk_by_chunk_len = @import("../audio.zig").chunk_by_chunk_len;
 const SoundParams = types.SoundParams;
-const types = @import("types.zig");
 const Note = types.Note;
 
 const bufferError = types.bufferError;

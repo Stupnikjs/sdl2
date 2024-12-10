@@ -1,6 +1,6 @@
 const std = @import("std");
 const SDL = @import("sdl.zig").SDL;
-const types = @import("types.zig");
+const types = @import("../types.zig");
 const buf = @import("../util/buf.zig");
 const sdl = @import("sdl.zig");
 const PlayBuffer = @import("sdl.zig").SDL_PlayBuffer;
@@ -82,18 +82,17 @@ pub fn BufferPlot(renderer: *SDL.SDL_Renderer, buffer: []u8, allocator: std.mem.
 
     var last_point_x: c_int = 0;
     var last_point_y: c_int = 0;
-    const len: usize = if (buff16.len > window_width) window_width else buff16.len;
+    const len: usize = if (buff16.len > window_width * 3) window_width * 3 else buff16.len;
 
     for (0..len) |i| {
-        const c_i: c_int = @intCast(i);
+        const i_trunc = @divTrunc(i, 3);
+        const c_i: c_int = @intCast(i_trunc);
         const c_y: c_int = @intCast(buff16[i]);
 
         // y is value of origin_y minus y
         // x is sum of x plus offset of origin x
         _ = SDL.SDL_RenderDrawLine(renderer, Ax.origin_x + last_point_x, Ax.y - last_point_y, Ax.origin_x + c_i, Ax.y - c_y);
-        if (i % 16 == 0) {
-            // circle = SDL.SDL_RenderDrawCircle();
-        }
+
         last_point_x = c_i;
         last_point_y = c_y;
     }

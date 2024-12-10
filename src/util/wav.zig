@@ -1,5 +1,5 @@
 const std = @import("std");
-const types = @import("types.zig");
+const types = @import("../types.zig");
 const intToBytes = types.intToBytes;
 
 /// Represents the header of a WAV audio file.

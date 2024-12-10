@@ -1,13 +1,14 @@
 // cli interface builder
 const std = @import("std");
-const string = @import("/util/string.zig");
-const sdl = @import("sdl.zig");
-const wav = @import("/util/wav.zig");
+const string = @import("./util/string.zig");
+const sdl = @import("./sdl/sdl.zig");
+const ui = @import("./sdl/ui.zig");
+const wav = @import("./util/wav.zig");
 const types = @import("types.zig");
 
 const strequal = std.mem.eql;
 
-pub const Command = enum { exit, help, list, gen, play, init, save };
+pub const Command = enum { exit, help, list, gen, play, init, save, plot };
 
 pub fn ParseCommand(cmdStr: []const u8, buffer: *[]u8, params: *types.SoundParams) !void {
     const allocator = std.heap.page_allocator;
@@ -23,6 +24,7 @@ pub fn ParseCommand(cmdStr: []const u8, buffer: *[]u8, params: *types.SoundParam
         .gen => try genSound(buffer, splited[1..], params, allocator),
         .init => try initFunc(buffer, allocator),
         .save => try saveFunc(buffer.*, splited[1..]),
+        .plot => try plotFunc(buffer.*, splited[1..], params.*),
         else => std.debug.print("something wrong happened", .{}),
     }
 }
@@ -34,6 +36,7 @@ pub fn GetCommand(str: []const u8) !Command {
     if (strequal(u8, str, "play")) return Command.play;
     if (strequal(u8, str, "gen")) return Command.gen;
     if (strequal(u8, str, "save")) return Command.save;
+    if (strequal(u8, str, "plot")) return Command.plot;
     return error.CommandMalformed;
 }
 
@@ -59,7 +62,11 @@ pub fn paramsFromMap(map: std.StringHashMap([]const u8), params: *types.SoundPar
     // last char of command being ignored
     if (map.get("-i") != null) {
         std.debug.print("{s}", .{map.get("-i").?});
-        params.instrument = types.Instrument.sinWave;
+        const instrument = map.get("-i").?;
+        if (std.mem.eql(u8, instrument, "sine")) params.instrument = types.Instrument.sinWave;
+        if (std.mem.eql(u8, instrument, "square")) params.instrument = types.Instrument.squareWave;
+        if (std.mem.eql(u8, instrument, "triangle")) params.instrument = types.Instrument.triangleWave;
+        if (std.mem.eql(u8, instrument, "kick")) params.instrument = types.Instrument.kick;
     }
     if (map.get("-f") != null) {
         std.debug.print("f:{s} \n", .{map.get("-f").?});
@@ -72,6 +79,7 @@ pub fn paramsFromMap(map: std.StringHashMap([]const u8), params: *types.SoundPar
 pub fn soundFromMap(buffer: *[]u8, map: std.StringHashMap([]const u8), params: *types.SoundParams) !void {
     // func paramsFromMap
     try paramsFromMap(map, params);
+    std.debug.print("instrument {s} \n", .{@tagName(params.instrument)});
     buffer.* = try sdl.buildBuffer(params.*);
 }
 
@@ -112,4 +120,9 @@ pub fn mapFormArgs(args: [][]const u8, allocator: std.mem.Allocator) !std.String
         }
     }
     return map;
+}
+
+pub fn plotFunc(buffer: []u8, args: [][]const u8, params: types.SoundParams) !void {
+    _ = args;
+    try ui.uiWrapper(buffer, params);
 }
