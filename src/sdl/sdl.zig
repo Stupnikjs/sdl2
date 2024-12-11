@@ -82,13 +82,15 @@ pub fn buildBuffer(params: SoundParams) ![]u8 {
 
 // SDL call to a sound Buffer
 // AT THE END OF EACH LOOP REINITIALIZE BUFFER
-pub fn SDL_PlayBuffer(buffer: []u8, params: SoundParams) !void {
+pub fn SDL_PlayBuffer(buffer: [*]u8, params: SoundParams) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
     // defer SDL.SDL_Quit();
-    audio_len = buffer.len;
+    audio_len = fixed_len;
     const allocator = std.heap.page_allocator;
     var audioSpec = InitSpec(params.sr, 1024);
-    audio_pos = buffer.ptr;
+
+    // here you pass the buffer to the SDL api
+    audio_pos = buffer;
     _ = SDL.SDL_OpenAudio(&audioSpec, null);
     SDL.SDL_PauseAudio(0);
 
@@ -107,6 +109,7 @@ pub fn SDL_PlayBuffer(buffer: []u8, params: SoundParams) !void {
 // a slice is a pointer
 // buffer to big
 
+// TRY LOADING A SAMPLE REPEAT AND COMBINE IT WITH OTHER
 pub fn SDL_PlayWav(filename: []const u8) !void {
     // SDL structures for WAV file handling
     var audioSpec: SDL.SDL_AudioSpec = undefined;

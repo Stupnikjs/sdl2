@@ -8,6 +8,7 @@ const wav = @import("./util/wav.zig");
 const buf = @import("./util/buf.zig");
 const string = @import("./util/string.zig");
 
+// ***          string.zig         ***
 test "trim right" {
     const allocator = std.heap.page_allocator;
     const simple = try string.trimRight("  nosp  ", allocator);
@@ -53,6 +54,14 @@ test "trim left SIMPLE" {
     //allocator.free(splited);
 }
 
+test "split space" {
+    const splited = try string.splitSpace("hello world from here", std.heap.page_allocator);
+    try expect(splited.len == 4);
+    try expect(std.mem.eql(u8, splited[3], "here"));
+}
+
+// ***          sdl.zig         ***
+
 test "sld play" {
     const params = types.SoundParams.init(
         44100,
@@ -63,13 +72,5 @@ test "sld play" {
         std.heap.page_allocator,
     );
     const buffer = try sdl.buildBuffer(params);
-    try sdl.SDL_PlayBuffer(buffer, params);
-
-    // try sdl.SDL_PlayWav("file.wav");
-}
-
-test "split space" {
-    const splited = try string.splitSpace("hello world from here", std.heap.page_allocator);
-    try expect(splited.len == 4);
-    try expect(std.mem.eql(u8, splited[3], "here"));
+    try sdl.SDL_PlayBuffer(buffer.ptr, params);
 }
