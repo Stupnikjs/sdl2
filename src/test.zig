@@ -59,13 +59,13 @@ test "sld play" {
         1024,
         3000,
         440,
-        types.Instrument.sinWave,
+        types.Instrument.squareWave,
         std.heap.page_allocator,
     );
     const buffer = try sdl.buildBuffer(params);
     try sdl.SDL_PlayBuffer(buffer, params);
 
-    try sdl.SDL_PlayWav("file.wav");
+    // try sdl.SDL_PlayWav("file.wav");
 }
 
 test "split space" {

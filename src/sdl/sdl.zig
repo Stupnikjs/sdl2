@@ -34,17 +34,25 @@ fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) 
     const length_to_copy = if (remaining > audio_len) audio_len else remaining;
 
     // Copy audio data to stream
-    _ = SDL.SDL_memcpy(stream, audio_cast, length_to_copy);
+
+    if (audio_len > 200) {
+        _ = SDL.SDL_memcpy(stream, audio_cast, length_to_copy);
+    } else {
+        _ = SDL.SDL_memset(stream, 0, length_to_copy);
+    }
 
     // Advance position and decrease counters
-    std.debug.print("audio len {d} \n", .{audio_len});
+    // std.debug.print("audio len {d} \n", .{audio_len});
+
     if (audio_len == 0) {
+        std.debug.print("reinit \n", .{});
         audio_pos.? -= 2048 * 100;
         audio_len = 2048 * 100;
     }
     audio_pos.? += length_to_copy;
     audio_len -= length_to_copy;
     remaining -= length_to_copy;
+    // std.debug.print("remaining {d} \n", .{remaining});
 }
 
 fn sdlPanic() noreturn {
