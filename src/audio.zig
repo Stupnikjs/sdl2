@@ -55,7 +55,7 @@ fn calcWave(freq: f64, instrument: Instrument, sin_offset: *f64, sr_f64: f64, sh
         Instrument.squareWave => squareFunc(sin_offset, freq, sr_f64, shift),
         Instrument.triangleWave => triangleFunc(sin_offset, freq, sr_f64, shift),
         Instrument.silence => silenceFunc(sin_offset, freq, sr_f64, shift),
-        Instrument.kick => kickFunc(sin_offset, freq, sr_f64, shift),
+        Instrument.kick => sinFunc(sin_offset, freq, sr_f64, shift), // change this 
     };
 }
 
@@ -91,31 +91,4 @@ pub fn triangleFunc(offset: *f64, note: f64, sr_f64: f64, shift: f64) f64 {
 
     const phase = 2.0 * offset.* - 1.0;
     return if (phase < 0.0) -phase else phase;
-}
-
-pub fn kickFunc(offset: *f64, note: f64, sr_f64: f64, shift: f64) f64 {
-    // The time duration since the start, calculated using the offset
-    const time = offset.* / sr_f64;
-
-    // Frequency decay factor (adjust these constants for desired sound)
-    const decay_factor: f64 = 0.01; // Controls pitch decay rate
-    const base_freq: f64 = note * math.exp(-decay_factor * time);
-
-    // Amplitude decay factor (adjust for desired sound)
-    const amp_decay: f64 = 0.1; // Controls volume decay rate
-    const amplitude = math.exp(-amp_decay * time);
-
-    // Calculate phase increment
-    const phase_increment: f64 = 2.0 * math.pi * base_freq / sr_f64;
-
-    // Generate the sine wave with pitch modulation
-    const sin_val = amplitude * @sin(offset.* + shift);
-
-    // Update the offset
-    offset.* += phase_increment;
-
-    // Ensure the offset stays within the range [0, 2π] for stability
-    offset.* = @mod(offset.*, 2.0 * math.pi);
-
-    return sin_val;
 }
