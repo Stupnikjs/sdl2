@@ -1,3 +1,5 @@
+// https://medium.com/@fwx5618177/zig-concurrency-implementation-methods-69bc31c14c56 multithreading
+
 const std = @import("std");
 const endian = @import("builtin").cpu.arch.endian();
 const math = std.math;
@@ -6,7 +8,6 @@ const tobytes = types.intToBytes;
 const chunk_by_chunk_len = @import("../audio.zig").chunk_by_chunk_len;
 const SoundParams = types.SoundParams;
 const Note = types.Note;
-
 const bufferError = types.bufferError;
 
 pub const SDL = @cImport({
