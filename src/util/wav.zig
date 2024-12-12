@@ -103,7 +103,7 @@ pub const WavHeader = struct {
         const file = try std.fs.cwd().openFile(filename, .{});
         defer file.close();
         const buff = try allocator.alloc(u8, self.data_size); 
-        // file.seekTo(44); 
+        try file.seekTo(44); 
         _ = try file.read(buff) 
         return buffer;
     }
