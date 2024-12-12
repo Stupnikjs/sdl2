@@ -43,6 +43,16 @@ pub const SoundParams = struct {
             .allocator = allocator,
         };
     }
+    pub fn default() SoundParams {
+        return .{
+            .sr = 44100,
+            .chunk_len = 1024,
+            .amplitude = 4000,
+            .frequency = 440,
+            .instrument = Instrument.sineWave,
+            .allocator = std.heap.page_allocator,
+        };
+    }
 };
 
 pub const Note = struct {
