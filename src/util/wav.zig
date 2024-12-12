@@ -87,6 +87,7 @@ pub const WavHeader = struct {
     pub fn read(buff: []u8) WavHeader {
         _ = buff;
     }
+
     pub fn WriteWav(self: *WavHeader, buffer: []u8, filename: []const u8) !void {
         const file = try std.fs.cwd().createFile(filename, .{});
         defer file.close();
@@ -97,6 +98,14 @@ pub const WavHeader = struct {
         const header_size = try file.write(serialized[0..]);
         if (header_size != 44) return error.headerMalformed;
         _ = try file.write(buffer);
+    }
+    pub fn bufferFromWav(self: *WavHeader,filename:[]const u8, allocator:std.mem.Allocator) ![]u8 {
+        const file = try std.fs.cwd().openFile(filename, .{});
+        defer file.close();
+        const buff = try allocator.alloc(u8, self.data_size); 
+        // file.seekTo(44); 
+        _ = try file.read(buff) 
+        return buffer;
     }
 };
 
