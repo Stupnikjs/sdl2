@@ -172,7 +172,7 @@ pub fn eventLoop(renderer: *SDL.SDL_Renderer, buffer: []u8, params: types.SoundP
                     }
                     if (isMouseInRec(event, playRect)) {
                         std.debug.print("playing sound", .{});
-                        try PlayBuffer(buffer, params);
+                        try PlayBuffer(buffer.ptr, params);
                     }
                 },
                 else => {},

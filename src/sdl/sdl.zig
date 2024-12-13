@@ -20,31 +20,46 @@ pub var audio_pos: ?[*]u8 = null; // Pointer to the audio buffer.
 pub var audio_len: usize = 0; // Remaining length of the sample to play.
 pub const sample_byte_num: usize = 1;
 pub var sec_len: f64 = 10;
-pub const fixed_len: c_int = 2048 * 100;
+pub const fixed_len: c_int = 2048 * 100 * 3;
+
+// fn my_audio_callback_loop(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) void {
+//     _ = ctx;
+//     const len_usize: usize = @intCast(len);
+//     const audio_cast: [*c]u8 = @ptrCast(audio_pos);
+//     var remaining = len_usize;
+
+//     const length_to_copy = if (remaining > audio_len) audio_len else remaining;
+
+//     if (audio_len > 200) {
+//         _ = SDL.SDL_memcpy(stream, audio_cast, length_to_copy);
+//     } else {
+//         _ = SDL.SDL_memset(stream, 0, length_to_copy);
+//     }
+
+//     if (audio_len == 0) {
+//         std.debug.print("reinit \n", .{});
+//         audio_pos.? -= fixed_len;
+//         audio_len = fixed_len;
+//     }
+//     audio_pos.? += length_to_copy;
+//     audio_len -= length_to_copy;
+//     remaining -= length_to_copy;
+// }
 
 fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) void {
     _ = ctx;
     const len_usize: usize = @intCast(len);
     const audio_cast: [*c]u8 = @ptrCast(audio_pos);
-    var remaining = len_usize;
-
+    const remaining = len_usize;
+    std.debug.print("audio len {d} remaining {d} \n", .{ audio_len, remaining });
     const length_to_copy = if (remaining > audio_len) audio_len else remaining;
-
-    if (audio_len > 200) {
+    if (audio_len > 0) {
         _ = SDL.SDL_memcpy(stream, audio_cast, length_to_copy);
     } else {
         _ = SDL.SDL_memset(stream, 0, length_to_copy);
     }
-
-    if (audio_len == 0) {
-        std.debug.print("reinit \n", .{});
-        audio_pos.? -= 2048 * 100;
-        audio_len = 2048 * 100;
-    }
     audio_pos.? += length_to_copy;
     audio_len -= length_to_copy;
-    remaining -= length_to_copy;
-
 }
 
 fn sdlPanic() noreturn {
@@ -76,13 +91,11 @@ pub fn buildBuffer(params: SoundParams) ![]u8 {
 // AT THE END OF EACH LOOP REINITIALIZE BUFFER
 pub fn SDL_PlayBuffer(buffer: [*]u8, params: SoundParams) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
-    // defer SDL.SDL_Quit();
     audio_len = fixed_len;
-    const allocator = std.heap.page_allocator;
     var audioSpec = InitSpec(params.sr, 1024);
 
-    // here you pass the buffer to the SDL api
     audio_pos = buffer;
+
     _ = SDL.SDL_OpenAudio(&audioSpec, null);
     SDL.SDL_PauseAudio(0);
 
@@ -90,16 +103,8 @@ pub fn SDL_PlayBuffer(buffer: [*]u8, params: SoundParams) !void {
         SDL.SDL_Delay(1000);
     }
 
-    if (audio_len == 0) {
-        _ = allocator;
-        // call these on quit from ui
-        // SDL.SDL_CloseAudio();
-        // allocator.free(buffer);
-        // _ = SDL.SDL_Quit();
-    }
+    if (audio_len == 0) SDL.SDL_AudioQuit(); // comment for infinite loop
 }
-// a slice is a pointer
-// buffer to big
 
 // TRY LOADING A SAMPLE REPEAT AND COMBINE IT WITH OTHER
 pub fn SDL_PlayWav(filename: []const u8) !void {

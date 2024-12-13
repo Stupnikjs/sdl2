@@ -60,17 +60,21 @@ test "split space" {
     try expect(std.mem.eql(u8, splited[3], "here"));
 }
 
-// ***          sdl.zig         ***
+// ***          wav.zig         ***
 
-test "sld play" {
-    const params = types.SoundParams.init(
-        44100,
-        1024,
-        3000,
-        440,
-        types.Instrument.squareWave,
-        std.heap.page_allocator,
-    );
-    const buffer = try sdl.buildBuffer(params);
-    try sdl.SDL_PlayBuffer(buffer.ptr, params);
+// test "open wav sliced" {
+//     var allocator = std.heap.page_allocator;
+//     const bu = try wav.bufferFromWav("test.wav", allocator);
+//     const params = types.SoundParams.default();
+//     var main_buf = try allocator.alloc(u8, sdl.fixed_len);
+//     @memcpy(main_buf[bu.len .. bu.len * 2], bu);
+//     try sdl.SDL_PlayBuffer(main_buf.ptr, params);
+// }
+test "open wav" {
+    var allocator = std.heap.page_allocator;
+    const bu = try wav.bufferFromWav("test.wav", allocator);
+    const params = types.SoundParams.default();
+    var main_buf = try allocator.alloc(u8, sdl.fixed_len);
+    @memcpy(main_buf[0..bu.len], bu);
+    try sdl.SDL_PlayBuffer(main_buf.ptr, params);
 }

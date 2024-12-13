@@ -99,15 +99,19 @@ pub const WavHeader = struct {
         if (header_size != 44) return error.headerMalformed;
         _ = try file.write(buffer);
     }
-    pub fn bufferFromWav(self: *WavHeader,filename:[]const u8, allocator:std.mem.Allocator) ![]u8 {
+    
+};
+
+
+pub fn bufferFromWav(filename:[]const u8, allocator:std.mem.Allocator) ![]u8 {
         const file = try std.fs.cwd().openFile(filename, .{});
         defer file.close();
-        const buff = try allocator.alloc(u8, self.data_size); 
+        const stat = try file.stat(); 
+        const buff = try allocator.alloc(u8, stat.size - 44); 
         try file.seekTo(44); 
-        _ = try file.read(buff) 
-        return buffer;
+        _ = try file.read(buff); 
+        return buff;
     }
-};
 
 pub fn PlayWav(filename: []const u8) !void {
     _ = filename;

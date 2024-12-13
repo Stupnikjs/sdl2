@@ -49,7 +49,7 @@ pub const SoundParams = struct {
             .chunk_len = 1024,
             .amplitude = 4000,
             .frequency = 440,
-            .instrument = Instrument.sineWave,
+            .instrument = Instrument.sinWave,
             .allocator = std.heap.page_allocator,
         };
     }

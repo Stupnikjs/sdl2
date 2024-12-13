@@ -96,7 +96,7 @@ pub fn playFunc(buffer: []u8, args: [][]const u8, params: types.SoundParams) !vo
     if (map.get("-f") != null) {
         try sdl.SDL_PlayWav(map.get("-f").?);
     }
-    try sdl.SDL_PlayBuffer(buffer, params);
+    try sdl.SDL_PlayBuffer(buffer.ptr, params);
 }
 
 pub fn saveFunc(buffer: []u8, args: [][]const u8) !void {
