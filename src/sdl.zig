@@ -20,29 +20,48 @@ pub const sample_byte_num: usize = 1;
 pub var sec_len: f64 = 10;
 pub const fixed_len: c_int = 2048 * 100 * 3;
 
-// fn my_audio_callback_loop(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) void {
-//     _ = ctx;
-//     const len_usize: usize = @intCast(len);
-//     const audio_cast: [*c]u8 = @ptrCast(audio_pos);
-//     var remaining = len_usize;
+pub fn intToBytes(T: type, source: T) []u8 {
+    var buff: [@divExact(@typeInfo(T).int.bits, 8)]u8 = undefined;
+    _ = std.mem.writeInt(T, &buff, source, builtin.cpu.arch.endian());
+    return &buff;
+}
 
-//     const length_to_copy = if (remaining > audio_len) audio_len else remaining;
+pub const Instrument = enum {
+    sinWave,
+    squareWave,
+    triangleWave,
+    kick,
+    silence,
+};
 
-//     if (audio_len > 200) {
-//         _ = SDL.SDL_memcpy(stream, audio_cast, length_to_copy);
-//     } else {
-//         _ = SDL.SDL_memset(stream, 0, length_to_copy);
-//     }
-
-//     if (audio_len == 0) {
-//         std.debug.print("reinit \n", .{});
-//         audio_pos.? -= fixed_len;
-//         audio_len = fixed_len;
-//     }
-//     audio_pos.? += length_to_copy;
-//     audio_len -= length_to_copy;
-//     remaining -= length_to_copy;
-// }
+pub const SoundParams = struct {
+    sr: usize,
+    chunk_len: u16,
+    amplitude: f64,
+    frequency: f64,
+    instrument: Instrument,
+    allocator: std.mem.Allocator,
+    pub fn init(sr: usize, chunk_len: u16, amplitude: f64, frequency: f64, instrument: Instrument, allocator: std.mem.Allocator) SoundParams {
+        return .{
+            .sr = sr,
+            .chunk_len = chunk_len,
+            .amplitude = amplitude,
+            .frequency = frequency,
+            .instrument = instrument,
+            .allocator = allocator,
+        };
+    }
+    pub fn default() SoundParams {
+        return .{
+            .sr = 44100,
+            .chunk_len = 1024,
+            .amplitude = 4000,
+            .frequency = 440,
+            .instrument = Instrument.sinWave,
+            .allocator = std.heap.page_allocator,
+        };
+    }
+};
 
 fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) void {
     _ = ctx;
@@ -65,7 +84,6 @@ fn sdlPanic() noreturn {
     @panic(std.mem.sliceTo(str, 0));
 }
 
-
 pub fn DefaultParams() SoundParams {}
 
 pub fn DefaultSpec() SDL.SDL_AudioSpec {
@@ -80,8 +98,6 @@ pub fn DefaultSpec() SDL.SDL_AudioSpec {
         .userdata = null,
     };
 }
-
-
 
 pub fn buildBuffer() ![]u8 {
     const defautParams = types.SoundParams.default();
