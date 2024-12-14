@@ -5,6 +5,8 @@ const math = std.math;
 const tobytes = types.intToBytes;
 const Instrument = types.Instrument;
 
+
+// chunk len and allocator and Instrument is passed
 pub fn chunk_by_chunk_len(buffer: []u8, params: SoundParams) !void {
     const allocator = params.allocator;
     const offset1: *f64 = try allocator.create(f64);
