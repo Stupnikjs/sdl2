@@ -2,8 +2,10 @@ const std = @import("std");
 const types = @import("types.zig");
 const SoundParams = types.SoundParams;
 const math = std.math;
+const bufferError = types.bufferError;
 const tobytes = types.intToBytes;
 const Instrument = types.Instrument;
+const Note = types.Note;
 
 pub fn chunk_by_chunk_len(buffer: []u8, params: SoundParams) !void {
     const allocator = params.allocator;
@@ -53,7 +55,7 @@ fn calcWave(freq: f64, instrument: Instrument, sin_offset: *f64, sr_f64: f64, sh
         Instrument.squareWave => squareFunc(sin_offset, freq, sr_f64, shift),
         Instrument.triangleWave => triangleFunc(sin_offset, freq, sr_f64, shift),
         Instrument.silence => silenceFunc(sin_offset, freq, sr_f64, shift),
-        Instrument.kick => sinFunc(sin_offset, freq, sr_f64, shift), // change this
+        Instrument.kick => sinFunc(sin_offset, freq, sr_f64, shift), // change this 
     };
 }
 
