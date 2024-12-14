@@ -34,6 +34,7 @@ pub const Instrument = enum {
     silence,
 };
 
+// move out chunk len frequency Instrument 
 pub const SoundParams = struct {
     sr: usize,
     chunk_len: u16,
