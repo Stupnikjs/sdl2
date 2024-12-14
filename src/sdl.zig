@@ -65,6 +65,9 @@ fn sdlPanic() noreturn {
     @panic(std.mem.sliceTo(str, 0));
 }
 
+
+pub fn DefaultParams() SoundParams {}
+
 pub fn DefaultSpec() SDL.SDL_AudioSpec {
     const sr_c: c_int = 44100;
     return .{
@@ -77,6 +80,8 @@ pub fn DefaultSpec() SDL.SDL_AudioSpec {
         .userdata = null,
     };
 }
+
+
 
 pub fn buildBuffer() ![]u8 {
     const defautParams = types.SoundParams.default();
