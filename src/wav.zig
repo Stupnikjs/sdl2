@@ -4,7 +4,10 @@ const intToBytes = types.intToBytes;
 
 /// Represents the header of a WAV audio file.
 /// See https://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html for the WAV file format specification.
-pub const WavHeader = struct {
+
+
+
+pub const WavObject = struct {
     /// Chunk identifier: "RIFF"
     riff_identifier: [4]u8,
 
@@ -45,7 +48,7 @@ pub const WavHeader = struct {
     data_size: u32,
 
     /// Initializes the WavHeader with default settings.
-    pub fn init(data_size: u32) WavHeader {
+    pub fn init(data_size: u32) WavObject {
         const riff_chunk_size_u32: u32 = 44 + data_size - 8; // Calculate the RIFF chunk size
 
         return WavHeader{
@@ -64,7 +67,8 @@ pub const WavHeader = struct {
             .data_size = data_size,
         };
     }
-
+    pub fn fromFile(filename:[] const u8){}
+    pub fn printHeader(filename:[]const u8 {}
     pub fn serialize(self: *WavHeader, allocator: std.mem.Allocator) ![]u8 {
         var header = try allocator.alloc(u8, 44);
         @memcpy(header[0..4], &self.riff_identifier);
@@ -84,11 +88,9 @@ pub const WavHeader = struct {
         return header;
     }
 
-    pub fn read(buff: []u8) WavHeader {
-        _ = buff;
-    }
+    
 
-    pub fn WriteWav(self: *WavHeader, buffer: []u8, filename: []const u8) !void {
+    pub fn WriteWav(self: *WavObject, buffer: []u8, filename: []const u8) !void {
         const file = try std.fs.cwd().createFile(filename, .{});
         defer file.close();
         var allocator = std.heap.page_allocator;
