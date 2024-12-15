@@ -15,16 +15,29 @@ const wav = @import("wav.zig");
 //     std.debug.print("time {d} \n", .{end - start});
 // }
 
+// test "basic play wav" {
+//     const start = std.time.microTimestamp();
+//     var allocator = std.heap.page_allocator;
+//     // reads header and prints values
+//     const buff = try wav.bufferFromWav("./samples/hip_hop_kick.wav", allocator);
+
+//     var maxi_buff = try allocator.alloc(u8, sdl.fixed_len);
+//     @memcpy(maxi_buff[2084 .. buff.len + 2084], buff);
+
+//     try sdl.SDL_PlayBuffer(maxi_buff.ptr, true);
+//     const end = std.time.microTimestamp();
+
+//     std.debug.print("time {d} \n", .{end - start});
+// }
 test "basic play wav" {
     const start = std.time.microTimestamp();
     var allocator = std.heap.page_allocator;
     // reads header and prints values
-    const buff = try wav.bufferFromWav("./samples/hip_hop_kick.wav", allocator);
-
-    var maxi_buff = try allocator.alloc(u8, sdl.fixed_len);
-    @memcpy(maxi_buff[2084 .. buff.len + 2084], buff);
-
-    try sdl.SDL_PlayBuffer(maxi_buff.ptr, true);
+    const buffer = try allocator.alloc(u8, 2048 * 100);
+    const file = try std.fs.cwd().openFile("./samples/kick.wav", .{});
+    const len = try file.read(buffer);
+    const wavObj = try wav.WavObject.deserializeHeader(buffer[0..len]);
+    wavObj.PrintHeader();
     const end = std.time.microTimestamp();
 
     std.debug.print("time {d} \n", .{end - start});
