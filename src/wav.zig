@@ -47,11 +47,11 @@ pub const WavObject = struct {
     /// Data subchunk size (size of the raw audio data)
     data_size: u32,
 
-    /// Initializes the WavHeader with default settings.
+
     pub fn init(data_size: u32) WavObject {
         const riff_chunk_size_u32: u32 = 44 + data_size - 8; // Calculate the RIFF chunk size
 
-        return WavHeader{
+        return WavObject{
             .riff_identifier = [_]u8{ 'R', 'I', 'F', 'F' },
             .riff_chunk_size = riff_chunk_size_u32,
             .riff_format = [_]u8{ 'W', 'A', 'V', 'E' },
@@ -69,7 +69,7 @@ pub const WavObject = struct {
     }
     pub fn fromFile(filename:[] const u8){}
     pub fn printHeader(filename:[]const u8 {}
-    pub fn serialize(self: *WavHeader, allocator: std.mem.Allocator) ![]u8 {
+    pub fn serialize(self: *WavObject, allocator: std.mem.Allocator) ![]u8 {
         var header = try allocator.alloc(u8, 44);
         @memcpy(header[0..4], &self.riff_identifier);
         @memcpy(header[4..8], intToBytes(u32, self.riff_chunk_size));
