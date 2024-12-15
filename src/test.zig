@@ -18,7 +18,9 @@ const wav = @import("wav.zig");
 test "basic play wav" {
     const start = std.time.microTimestamp();
     var allocator = std.heap.page_allocator;
-    const buff = try wav.bufferFromWav("kick.wav", allocator);
+    // reads header and prints values
+    const buff = try wav.bufferFromWav("./samples/hip_hop_kick.wav", allocator);
+
     var maxi_buff = try allocator.alloc(u8, sdl.fixed_len);
     @memcpy(maxi_buff[2084 .. buff.len + 2084], buff);
 
