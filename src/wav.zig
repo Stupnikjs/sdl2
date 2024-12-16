@@ -67,7 +67,8 @@ pub const WavObject = struct {
 
         return header;
     }
-    pub fn deserializeHeader(wavBytes: []u8) !WavObject {
+    pub fn deserializeHeader(wavBytes: []u8, allocator: std.mem.Allocator) !*WavObject {
+        var wavObj = try allocator.create(WavObject);
         if (wavBytes.len < 44) return error.InvalidWav;
 
         const riffChunku32: u32 = undefined;
@@ -81,31 +82,30 @@ pub const WavObject = struct {
         const dataSize: u32 = undefined;
 
         // Parse individual fields from the wavBytes array
-        std.mem.writeInt(u32, wavBytes[4..8], riffChunku32, endian);
-        std.mem.writeInt(u32, wavBytes[16..20], subChunkSize, endian);
-        std.mem.writeInt(u16, wavBytes[20..22], audioFormat, endian);
-        std.mem.writeInt(u16, wavBytes[22..24], numChannels, endian);
-        std.mem.writeInt(u32, wavBytes[24..28], sampleRate, endian);
-        std.mem.writeInt(u32, wavBytes[28..32], byteRate, endian);
-        std.mem.writeInt(u16, wavBytes[32..34], blockSize, endian);
-        std.mem.writeInt(u16, wavBytes[34..36], bitsPerSample, endian);
-        std.mem.writeInt(u32, wavBytes[40..44], dataSize, endian);
+        std.mem.writeInt(u32, wavBytes[4..8], riffChunku32, .little);
+        std.mem.writeInt(u32, wavBytes[16..20], subChunkSize, .little);
+        std.mem.writeInt(u16, wavBytes[20..22], audioFormat, .little);
+        std.mem.writeInt(u16, wavBytes[22..24], numChannels, .little);
+        std.mem.writeInt(u32, wavBytes[24..28], sampleRate, .little);
+        std.mem.writeInt(u32, wavBytes[28..32], byteRate, .little);
+        std.mem.writeInt(u16, wavBytes[32..34], blockSize, .little);
+        std.mem.writeInt(u16, wavBytes[34..36], bitsPerSample, .little);
+        std.mem.writeInt(u32, wavBytes[40..44], dataSize, .little);
 
-        return .{
-            .riff_identifier = wavBytes[0..4],
-            .riff_chunk_size = riffChunku32,
-            .riff_format = wavBytes[8..12],
-            .fmt_identifier = wavBytes[12..16],
-            .fmt_subchunk_size = subChunkSize,
-            .fmt_audio_format = audioFormat,
-            .fmt_num_channels = numChannels,
-            .fmt_sample_rate = sampleRate,
-            .fmt_byte_rate = byteRate,
-            .fmt_block_size = blockSize,
-            .fmt_bits_per_sample = bitsPerSample,
-            .data_identifier = wavBytes[36..40],
-            .data_size = dataSize,
-        };
+        wavObj.riff_identifier = wavBytes[0..4];
+        wavObj.riff_chunk_size = riffChunku32;
+        wavObj.riff_format = wavBytes[8..12];
+        wavObj.fmt_identifier = wavBytes[12..16];
+        wavObj.fmt_subchunk_size = subChunkSize;
+        wavObj.fmt_audio_format = audioFormat;
+        wavObj.fmt_num_channels = numChannels;
+        wavObj.fmt_sample_rate = sampleRate;
+        wavObj.fmt_byte_rate = byteRate;
+        wavObj.fmt_block_size = blockSize;
+        wavObj.fmt_bits_per_sample = bitsPerSample;
+        wavObj.data_identifier = wavBytes[36..40];
+        wavObj.data_size = dataSize;
+        return wavObj;
     }
     pub fn PrintHeader(self: WavObject) void {
         std.debug.print("chunk_size  {d} \n", .{self.fmt_subchunk_size});
