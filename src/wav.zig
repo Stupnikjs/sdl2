@@ -21,34 +21,6 @@ pub const WavObject = struct {
     data_identifier: *[4]u8, // Data subchunk identifier: "data"
     data_size: u32, // Data subchunk size (size of the raw audio data)
 
-    pub fn init(data_size: u32) WavObject {
-        const riff_chunk_size_u32: u32 = 44 + data_size - 8; // Calculate the RIFF chunk size
-
-        return WavObject{
-            .riff_identifier = [_]u8{ 'R', 'I', 'F', 'F' },
-            .riff_chunk_size = riff_chunk_size_u32,
-            .riff_format = [_]u8{ 'W', 'A', 'V', 'E' },
-            .fmt_identifier = [_]u8{ 'f', 'm', 't', ' ' },
-            .fmt_subchunk_size = 16, // PCM format
-            .fmt_audio_format = 1, // PCM (uncompressed)
-            .fmt_num_channels = 2, // Stereo (for your example)
-            .fmt_sample_rate = 44100,
-            .fmt_byte_rate = 44100 * 2 * 16 / 8, // byte rate: sample_rate * num_channels * bits_per_sample / 8
-            .fmt_block_size = 2 * 16 / 8, // Block size: channels * bits per sample / 8
-            .fmt_bits_per_sample = 16, // 16 bits per sample
-            .data_identifier = [_]u8{ 'd', 'a', 't', 'a' },
-            .data_size = data_size,
-        };
-    }
-    pub fn fromFile(filename: []const u8, allocator: std.mem.Allocator) !*WavObject {
-        const file = try std.fs.cwd().openFile(filename, .{});
-        defer file.close();
-        const stat = try file.stat();
-        const buff = try allocator.alloc(u8, stat.size - 44);
-        try file.seekTo(44);
-        _ = try file.read(buff);
-        return buff;
-    }
     pub fn serialize(self: *WavObject, allocator: std.mem.Allocator) ![]u8 {
         var header = try allocator.alloc(u8, 44);
         @memcpy(header[0..4], &self.riff_identifier);
