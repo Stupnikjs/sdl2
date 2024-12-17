@@ -36,11 +36,11 @@ test "basic play wav" {
     const allocator = gpa.allocator();
     // reads header and prints values
     const buffer = try allocator.alloc(u8, 2048 * 100000);
-    const file = try std.fs.cwd().openFile("./samples/hip_hop_kick.wav", .{ .mode = std.fs.File.OpenMode.read_only });
+    const file = try std.fs.cwd().openFile("./samples/kick.wav", .{ .mode = std.fs.File.OpenMode.read_only });
     const reader = file.reader();
     _ = try reader.read(buffer);
-    const wavObj = try wav.WavObject.deserializeHeader(buffer[0..44], allocator);
-    wavObj.PrintHeader();
+    const obj = try wav.WavObject.deserializeHeader(buffer, allocator);
+    obj.PrintHeader();
     std.debug.print("{d}", .{buffer[0..44]});
     const end = std.time.microTimestamp();
 

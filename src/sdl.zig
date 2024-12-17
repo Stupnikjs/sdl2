@@ -97,6 +97,7 @@ pub fn buildBuffer() ![]u8 {
     return buffer;
 }
 
+// adapt to bits per samples 16 or 24
 pub fn SDL_PlayBuffer(buffer: [*]u8, loop: bool) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
     audio_len = fixed_len;

@@ -43,26 +43,16 @@ pub const WavObject = struct {
         var wavObj = try allocator.create(WavObject);
         if (wavBytes.len < 44) return error.InvalidWav;
 
-        const riffChunku32: u32 = undefined;
-        const subChunkSize: u32 = undefined;
-        const audioFormat: u16 = undefined;
-        const numChannels: u16 = undefined;
-        const sampleRate: u32 = undefined;
-        const byteRate: u32 = undefined;
-        const blockSize: u16 = undefined;
-        const bitsPerSample: u16 = undefined;
-        const dataSize: u32 = undefined;
-
         // Parse individual fields from the wavBytes array
-        std.mem.writeInt(u32, wavBytes[4..8], riffChunku32, .little);
-        std.mem.writeInt(u32, wavBytes[16..20], subChunkSize, .little);
-        std.mem.writeInt(u16, wavBytes[20..22], audioFormat, .little);
-        std.mem.writeInt(u16, wavBytes[22..24], numChannels, .little);
-        std.mem.writeInt(u32, wavBytes[24..28], sampleRate, .little);
-        std.mem.writeInt(u32, wavBytes[28..32], byteRate, .little);
-        std.mem.writeInt(u16, wavBytes[32..34], blockSize, .little);
-        std.mem.writeInt(u16, wavBytes[34..36], bitsPerSample, .little);
-        std.mem.writeInt(u32, wavBytes[40..44], dataSize, .little);
+        const riffChunku32 = std.mem.readInt(u32, wavBytes[4..8], .little);
+        const subChunkSize: u32 = std.mem.readInt(u32, wavBytes[16..20], .little);
+        const audioFormat: u16 = std.mem.readInt(u16, wavBytes[20..22], .little);
+        const numChannels: u16 = std.mem.readInt(u16, wavBytes[22..24], .little);
+        const sampleRate: u32 = std.mem.readInt(u32, wavBytes[24..28], .little);
+        const byteRate: u32 = std.mem.readInt(u32, wavBytes[28..32], .little);
+        const blockSize: u16 = std.mem.readInt(u16, wavBytes[32..34], .little);
+        const bitsPerSample: u16 = std.mem.readInt(u16, wavBytes[34..36], .little);
+        const dataSize: u32 = std.mem.readInt(u32, wavBytes[40..44], .little);
 
         wavObj.riff_identifier = wavBytes[0..4];
         wavObj.riff_chunk_size = riffChunku32;
