@@ -1,12 +1,11 @@
 const std = @import("std");
-const types = @import("../types.zig");
-const intToBytes = types.intToBytes;
+const sdl = @import("sdl.zig");
 const builtin = @import("builtin");
 const endian = builtin.cpu.arch.endian();
 
 /// Represents the header of a WAV audio file.
 /// See https://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html for the WAV file format specification.
-pub const WavObject = struct {
+pub const WavHeader = struct {
     riff_identifier: *[4]u8, // Chunk identifier: "RIFF"
     riff_chunk_size: u32, // Chunk size (file size - 8 bytes)
     riff_format: *[4]u8, // Format identifier: "WAVE"
@@ -21,26 +20,27 @@ pub const WavObject = struct {
     data_identifier: *[4]u8, // Data subchunk identifier: "data"
     data_size: u32, // Data subchunk size (size of the raw audio data)
 
-    pub fn serialize(self: *WavObject, allocator: std.mem.Allocator) ![]u8 {
+    pub fn serialize(self: *WavHeader, allocator: std.mem.Allocator) ![]u8 {
         var header = try allocator.alloc(u8, 44);
         @memcpy(header[0..4], &self.riff_identifier);
-        @memcpy(header[4..8], intToBytes(u32, self.riff_chunk_size));
+        @memcpy(header[4..8], sdl.intToBytes(u32, self.riff_chunk_size));
         @memcpy(header[8..12], &self.riff_format);
         @memcpy(header[12..16], &self.fmt_identifier);
-        @memcpy(header[16..20], intToBytes(u32, self.fmt_subchunk_size));
-        @memcpy(header[20..22], intToBytes(u16, self.fmt_audio_format));
-        @memcpy(header[22..24], intToBytes(u16, self.fmt_num_channels));
-        @memcpy(header[24..28], intToBytes(u32, self.fmt_sample_rate));
-        @memcpy(header[28..32], intToBytes(u32, self.fmt_byte_rate));
-        @memcpy(header[32..34], intToBytes(u16, self.fmt_block_size));
-        @memcpy(header[34..36], intToBytes(u16, self.fmt_bits_per_sample));
+        @memcpy(header[16..20], sdl.intToBytes(u32, self.fmt_subchunk_size));
+        @memcpy(header[20..22], sdl.intToBytes(u16, self.fmt_audio_format));
+        @memcpy(header[22..24], sdl.intToBytes(u16, self.fmt_num_channels));
+        @memcpy(header[24..28], sdl.intToBytes(u32, self.fmt_sample_rate));
+        @memcpy(header[28..32], sdl.intToBytes(u32, self.fmt_byte_rate));
+        @memcpy(header[32..34], sdl.intToBytes(u16, self.fmt_block_size));
+        @memcpy(header[34..36], sdl.intToBytes(u16, self.fmt_bits_per_sample));
         @memcpy(header[36..40], &self.data_identifier);
-        @memcpy(header[40..44], intToBytes(u32, self.data_size));
+        @memcpy(header[40..44], sdl.intToBytes(u32, self.data_size));
 
         return header;
     }
-    pub fn deserializeHeader(wavBytes: []u8, allocator: std.mem.Allocator) !*WavObject {
-        var wavObj = try allocator.create(WavObject);
+    pub fn deserializeHeader(wavBytes: []u8, allocator: std.mem.Allocator) !*WavHeader {
+        std.debug.print("{d}", .{wavBytes[0..44]});
+        var wavObj = try allocator.create(WavHeader);
         if (wavBytes.len < 44) return error.InvalidWav;
 
         // Parse individual fields from the wavBytes array
@@ -53,7 +53,7 @@ pub const WavObject = struct {
         const blockSize: u16 = std.mem.readInt(u16, wavBytes[32..34], .little);
         const bitsPerSample: u16 = std.mem.readInt(u16, wavBytes[34..36], .little);
         const dataSize: u32 = std.mem.readInt(u32, wavBytes[40..44], .little);
-
+        std.debug.print("size {d} \n", .{dataSize});
         wavObj.riff_identifier = wavBytes[0..4];
         wavObj.riff_chunk_size = riffChunku32;
         wavObj.riff_format = wavBytes[8..12];
@@ -69,7 +69,7 @@ pub const WavObject = struct {
         wavObj.data_size = dataSize;
         return wavObj;
     }
-    pub fn PrintHeader(self: WavObject) void {
+    pub fn PrintHeader(self: WavHeader) void {
         std.debug.print("chunk_size  {d} \n", .{self.fmt_subchunk_size});
         std.debug.print("riff_chunk_size {d} \n", .{self.riff_chunk_size});
         std.debug.print("num channels {d} \n", .{self.fmt_num_channels});
@@ -80,29 +80,30 @@ pub const WavObject = struct {
         std.debug.print("data_size {d} \n", .{self.data_size});
     }
 
-    pub fn WriteWav(self: *WavObject, buffer: []u8, filename: []const u8) !void {
-        const file = try std.fs.cwd().createFile(filename, .{});
-        defer file.close();
-        var allocator = std.heap.page_allocator;
-        var serialized = try allocator.alloc(u8, 44);
-        defer allocator.free(serialized);
-        serialized = try self.serialize(allocator);
-        const header_size = try file.write(serialized[0..]);
-        if (header_size != 44) return error.headerMalformed;
-        _ = try file.write(buffer);
+    pub fn SDLSPEC_FROMWAV(self: *WavHeader) sdl.SDL.SDL_AudioSpec {
+        const sr_c_int: c_int = @intCast(self.fmt_sample_rate);
+        const channels_u8: u8 = @intCast(self.fmt_num_channels);
+        std.debug.print("audio_format {d}", .{self.fmt_audio_format});
+        return sdl.SDL.SDL_AudioSpec{
+            .freq = sr_c_int,
+            .format = self.fmt_audio_format,
+            .channels = channels_u8,
+            .userdata = null,
+            .callback = sdl.my_audio_callback,
+        };
+    }
+    pub fn Play(self: *WavHeader, buffer: []u8) !void {
+        var spec = self.SDLSPEC_FROMWAV();
+        std.debug.print("spec {any}", .{spec});
+        try sdl.SDL_PlayBuffer(buffer[44..].ptr, &spec);
     }
 };
 
-pub fn bufferFromWav(filename: []const u8, allocator: std.mem.Allocator) ![]u8 {
+pub fn OpenWAVFileAllocated(filename: []const u8, allocator: std.mem.Allocator) ![]u8 {
     const file = try std.fs.cwd().openFile(filename, .{});
-    defer file.close();
     const stat = try file.stat();
-    const buff = try allocator.alloc(u8, stat.size - 44);
-    try file.seekTo(44);
-    _ = try file.read(buff);
-    return buff;
-}
-
-pub fn PlayWav(filename: []const u8) !void {
-    _ = filename;
+    const buffer = try allocator.alloc(u8, stat.size);
+    const len = try file.readAll(buffer);
+    if (len != buffer.len) return error.InvalidBufferLen;
+    return buffer;
 }

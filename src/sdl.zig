@@ -39,7 +39,7 @@ pub var audio_pos: ?[*]u8 = null; // Pointer to the audio buffer.
 pub var audio_len: usize = fixed_len; // Remaining length of the sample to play.
 pub const fixed_len: c_int = 2048 * 40;
 
-fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) void {
+pub fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) void {
     _ = ctx;
     const len_usize: usize = @intCast(len);
     const audio_cast: [*c]u8 = @ptrCast(audio_pos);
@@ -55,7 +55,7 @@ fn my_audio_callback(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) 
     audio_len -= length_to_copy;
 }
 
-fn my_audio_callback_loop(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) void {
+pub fn my_audio_callback_loop(ctx: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.C) void {
     _ = ctx;
     // len is the bytes num of the chunk passed into the stream
     const len_usize: usize = @intCast(len);
@@ -77,14 +77,15 @@ fn sdlPanic() noreturn {
     @panic(std.mem.sliceTo(str, 0));
 }
 
-pub fn DefaultSpec(loop: bool) SDL.SDL_AudioSpec {
-    const sr_c: c_int = 44100;
+pub fn InitSpec(sr: c_int, format: SDL.SDL_AudioFormat, channels: u8, samples: u16, loop: bool) SDL.SDL_AudioSpec {
+    // if format is 65534 or F32 =>
+    // if format is 1 or U8
     return .{
-        .freq = sr_c,
-        .format = SDL.AUDIO_U16,
-        .channels = 1,
+        .freq = sr,
+        .format = format,
+        .channels = channels,
         // chunk size read by the callback
-        .samples = 2048,
+        .samples = samples,
         .callback = if (loop) my_audio_callback_loop else my_audio_callback,
         .userdata = null,
     };
@@ -98,15 +99,14 @@ pub fn buildBuffer() ![]u8 {
 }
 
 // adapt to bits per samples 16 or 24
-pub fn SDL_PlayBuffer(buffer: [*]u8, loop: bool) !void {
+pub fn SDL_PlayBuffer(buffer: [*]u8, spec: *SDL.SDL_AudioSpec) !void {
     if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
     audio_len = fixed_len;
-    var audioSpec = DefaultSpec(loop);
-
     audio_pos = buffer;
 
-    _ = SDL.SDL_OpenAudio(&audioSpec, null);
-    SDL.SDL_PauseAudio(0);
+    _ = SDL.SDL_OpenAudio(spec, null);
+    // _ = SDL.SDL_OpenAudioDevice(device: [*c]const u8, iscapture: c_int, desired: [*c]const SDL_AudioSpec, obtained: [*c]SDL_AudioSpec, allowed_changes: c_int)
+    SDL.SDL_PauseAudio(0); // no sound if not present
 
     while (audio_len > 1000) {
         SDL.SDL_Delay(1000);
@@ -127,12 +127,12 @@ pub fn chunkingAndSound(buffer: []u8, params: SoundParams) !void {
 
     for (0..iter_num_usize) |i| {
         if (i != iter_num_usize) {
-            const buff = try soundToBufferI24(params.chunk_len, offset, params);
+            const buff = try soundToBufferI16(params.chunk_len, offset, params);
             @memcpy(buffer[i * chunk_size .. i * chunk_size + chunk_size], buff);
             allocator.free(buff);
         }
     }
-    const buff = try soundToBufferI24(mod, offset, params);
+    const buff = try soundToBufferI16(mod, offset, params);
     @memcpy(buffer[iter_num_usize * chunk_size .. iter_num_usize * chunk_size + mod], buff);
 }
 
@@ -142,7 +142,7 @@ pub fn soundToBufferI16(buffer_len: usize, offset: *f64, params: SoundParams) ![
     const sr_f64: f64 = @floatFromInt(params.sr);
     for (0..buffer_len / 2) |i| {
         const i_f64: f64 = @floatFromInt(i);
-        const val: f64 = sound.calcWave(params.frequency, Instrument.sinWave, offset, sr_f64, if (true) i_f64 / 2000 else 0);
+        const val: f64 = sound.calcWave(params.frequency, Instrument.triangleWave, offset, sr_f64, if (true) i_f64 / 2000 else 0);
         const int16: i16 = @intFromFloat((val + 0) * params.amplitude);
         const bytes = intToBytes(i16, int16);
         buff[i * 2] = bytes[0];
@@ -151,19 +151,12 @@ pub fn soundToBufferI16(buffer_len: usize, offset: *f64, params: SoundParams) ![
     return buff;
 }
 
-pub fn soundToBufferI24(buffer_len: usize, offset: *f64, params: SoundParams) ![]u8 {
-    if (@mod(buffer_len, 3) != 0) return error.InvalidBufferLen;
+pub fn silenceToBuffer(buffer_len: usize, offset: *f64, params: SoundParams) ![]u8 {
+    _ = offset;
     const allocator = params.allocator;
     const buff = try allocator.alloc(u8, buffer_len);
-    const sr_f64: f64 = @floatFromInt(params.sr);
-    for (0..buffer_len / 3) |i| {
-        const i_f64: f64 = @floatFromInt(i);
-        const val: f64 = sound.calcWave(params.frequency, Instrument.sinWave, offset, sr_f64, if (true) i_f64 / 2000 else 0);
-        const int24: i24 = @intFromFloat((val + 0) * params.amplitude);
-        const bytes = intToBytes(i24, int24);
-        buff[i * 3] = bytes[0];
-        buff[i * 3 + 1] = bytes[1];
-        buff[i * 3 + 2] = bytes[2];
+    for (0..buffer_len) |i| {
+        buff[i] = 0;
     }
     return buff;
 }

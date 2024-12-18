@@ -30,20 +30,28 @@ const wav = @import("wav.zig");
 //     std.debug.print("time {d} \n", .{end - start});
 // }
 
-test "basic play wav" {
-    const start = std.time.microTimestamp();
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    // reads header and prints values
-    const buffer = try allocator.alloc(u8, 2048 * 100000);
-    const file = try std.fs.cwd().openFile("./samples/test.wav", .{ .mode = std.fs.File.OpenMode.read_only });
-    const reader = file.reader();
-    _ = try reader.read(buffer);
-    const obj = try wav.WavObject.deserializeHeader(buffer, allocator);
-    obj.PrintHeader();
-    std.debug.print("{d}", .{buffer[0..44]});
-    try sdl.SDL_PlayBuffer(buffer[44..].ptr, true);
-    const end = std.time.microTimestamp();
+// test "spec play sound" {
+//     // var allocator = std.heap.page_allocator;
+//     const buff = try sdl.buildBuffer();
+//     var spec = sdl.InitSpec(44100, sdl.SDL.AUDIO_U16, 1, 2048, true);
+//     try sdl.SDL_PlayBuffer(buff.ptr, &spec);
+// }
 
-    std.debug.print("time {d} \n", .{end - start});
+// test "play wav" {
+//     var allocator = std.heap.page_allocator;
+//     const buff = try wav.OpenWAVFileAllocated("./samples/test.wav", allocator);
+//     const header = try wav.WavHeader.deserializeHeader(buff, allocator);
+//     header.PrintHeader();
+//     try header.Play(buff);
+//     defer allocator.free(buff);
+// }
+
+test "sdl load wav" {
+    var spec: sdl.SDL.SDL_AudioSpec = undefined;
+    var audio_buf: [*c]u8 = undefined;
+    var audio_len: u32 = undefined;
+    const spe = sdl.SDL.SDL_LoadWAV("./samples/test.wav", &spec, &audio_buf, &audio_len);
+
+    std.debug.print("spec {any}", .{spe});
+    try sdl.SDL_PlayBuffer(audio_buf[0..], spe);
 }
