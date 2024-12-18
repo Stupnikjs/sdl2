@@ -53,5 +53,6 @@ test "sdl load wav" {
     const spe = sdl.SDL.SDL_LoadWAV("./samples/test.wav", &spec, &audio_buf, &audio_len);
 
     std.debug.print("spec {any}", .{spe});
-    try sdl.SDL_PlayBuffer(audio_buf[0..], spe);
+
+    try sdl.SDL_PlayBuffer(audio_buf[0..], spe, audio_len);
 }

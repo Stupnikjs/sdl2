@@ -99,20 +99,50 @@ pub fn buildBuffer() ![]u8 {
 }
 
 // adapt to bits per samples 16 or 24
-pub fn SDL_PlayBuffer(buffer: [*]u8, spec: *SDL.SDL_AudioSpec) !void {
-    if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_AUDIO) < 0) sdlPanic();
-    audio_len = fixed_len;
-    audio_pos = buffer;
-
-    _ = SDL.SDL_OpenAudio(spec, null);
-    // _ = SDL.SDL_OpenAudioDevice(device: [*c]const u8, iscapture: c_int, desired: [*c]const SDL_AudioSpec, obtained: [*c]SDL_AudioSpec, allowed_changes: c_int)
-    SDL.SDL_PauseAudio(0); // no sound if not present
-
-    while (audio_len > 1000) {
-        SDL.SDL_Delay(1000);
+pub fn SDL_PlayBuffer(buffer: [*]u8, spec: *SDL.SDL_AudioSpec, buffer_len: u32) !void {
+    // Initialize SDL with audio
+    if (SDL.SDL_Init(SDL.SDL_INIT_AUDIO) < 0) {
+        std.debug.print("SDL_Init failed\n", .{});
+        return;
     }
 
-    // if (audio_len == 0) SDL.SDL_AudioQuit(); // comment for infinite loop
+    // Open the audio device
+    const device_id = SDL.SDL_OpenAudioDevice(null, // Default device
+        0, // Default frequency
+        spec, // Audio spec (from SDL_LoadWAV)
+        null, // No need to pass desired spec, we use the loaded one
+        SDL.SDL_AUDIO_ALLOW_ANY_CHANGE // Allow SDL to adjust settings
+    );
+
+    if (device_id == 0) {
+        std.debug.print("SDL_OpenAudioDevice failed\n", .{});
+        SDL.SDL_Quit();
+        return;
+    }
+
+    // Queue the audio buffer to the audio device
+
+    const queue_result = SDL.SDL_QueueAudio(device_id, buffer, buffer_len); // Example size: 2 bytes per sample (stereo 16-bit)
+    if (queue_result != 0) {
+        std.debug.print("SDL_QueueAudio failed\n", .{});
+        SDL.SDL_CloseAudioDevice(device_id);
+        SDL.SDL_Quit();
+        return;
+    }
+
+    // Start playing the audio (unpause the device)
+    SDL.SDL_PauseAudioDevice(device_id, 0); // 0 to unpause (start playing)
+
+    // Wait until audio finishes playing
+    var bytes_left = SDL.SDL_GetQueuedAudioSize(device_id);
+    while (bytes_left > 0) {
+        std.time.sleep(1000000);
+        bytes_left = SDL.SDL_GetQueuedAudioSize(device_id); // Check remaining audio to play
+    }
+
+    // Clean up and close audio device
+    SDL.SDL_CloseAudioDevice(device_id);
+    SDL.SDL_Quit(); // Quit SDL
 }
 
 pub fn chunkingAndSound(buffer: []u8, params: SoundParams) !void {
