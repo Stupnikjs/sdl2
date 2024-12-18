@@ -47,12 +47,5 @@ const wav = @import("wav.zig");
 // }
 
 test "sdl load wav" {
-    var spec: sdl.SDL.SDL_AudioSpec = undefined;
-    var audio_buf: [*c]u8 = undefined;
-    var audio_len: u32 = undefined;
-    const spe = sdl.SDL.SDL_LoadWAV("./samples/test.wav", &spec, &audio_buf, &audio_len);
-
-    std.debug.print("spec {any}", .{spe});
-
-    try sdl.SDL_PlayBuffer(audio_buf[0..], spe, audio_len);
+    try sdl.SDL_PlayBuffer();
 }
