@@ -90,3 +90,33 @@ pub fn SDL_PlayBuffer(buf: [*c]u8, spec: SDL.SDL_AudioSpec, len: u32) !void {
     // Clean up and close audio device
 
 }
+
+pub fn convertion(audio_buf: []u8, spec: SDL.SDL_AudioSpec, desired_spec: SDL.SDL_AudioSpec) !void {
+    var cvt: SDL.SDL_AudioCVT = undefined;
+    if (SDL.SDL_BuildAudioCVT(&cvt, spec.format, spec.channels, spec.freq, desired_spec.format, desired_spec.channels, desired_spec.freq) < 0) {
+        std.debug.print("Error building audio CVT: {s}\n", .{SDL.SDL_GetError()});
+        return;
+    }
+    if (cvt.needed) {
+        // Allocate buffer with the required size
+        const len: u32 = @intCast(cvt.len_mult);
+        const buffer_size = audio_len * len;
+        cvt.buf = SDL.SDL_malloc(buffer_size) orelse return;
+        const buf_ptr: [*c]u8 = @ptrCast(cvt.buf);
+        const audio_buf_ptr: []*const u8 = @ptrCast(audio_buf);
+        // Copy the original data into the conversion buffer
+        @memcpy(buf_ptr, audio_buf_ptr);
+        cvt.len = audio_len;
+
+        // Perform the conversion
+        if (SDL.SDL_ConvertAudio(&cvt) < 0) {
+            std.debug.print("Error converting audio: {s}\n", .{SDL.SDL_GetError()});
+            return;
+        }
+
+        // Use cvt.buf and cvt.len_cvt for the converted audio
+        SDL.SDL_free(audio_buf); // Free the original buffer if no longer needed
+        audio_buf = @ptrCast([*c]u8, cvt.buf);
+        audio_len = cvt.len_cvt;
+    }
+}
