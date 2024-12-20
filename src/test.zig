@@ -47,5 +47,8 @@ const wav = @import("wav.zig");
 // }
 
 test "sdl load wav" {
-    try sdl.SDL_PlayBuffer();
+    const buf = try sdl.buildBuffer();
+    const len_u32: u32 = @intCast(buf.len);
+    const spec = sdl.InitSpec(44100, sdl.SDL.AUDIO_U16, 1, 2048, true);
+    try sdl.SDL_PlayBuffer(buf, spec, len_u32);
 }

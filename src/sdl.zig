@@ -99,38 +99,39 @@ pub fn buildBuffer() ![]u8 {
 }
 
 // adapt to bits per samples 16 or 24
-pub fn SDL_PlayBuffer() !void {
+pub fn SDL_PlayBuffer(buf: []u8, spec: SDL.SDL_AudioSpec, len: u32) !void {
+    _ = len;
     // Initialize SDL with audio
     if (SDL.SDL_Init(SDL.SDL_INIT_AUDIO) < 0) {
         std.debug.print("SDL_Init failed\n", .{});
         return;
     }
-    var spec_loaded: SDL.SDL_AudioSpec = undefined;
-    var audio_buf: [*c]u8 = undefined;
-    var audio_len_un: u32 = undefined;
-    const spe = SDL.SDL_LoadWAV("./samples/test.wav", &spec_loaded, &audio_buf, &audio_len_un);
-    spe.*.callback = my_audio_callback;
+
     // Open the audio device
     const device_id = SDL.SDL_OpenAudioDevice(null, // Default device
         0, // Default frequency
-        spe, // Audio spec (from SDL_LoadWAV)
+        &spec, // Audio spec (from SDL_LoadWAV)
         null, // No need to pass desired spec, we use the loaded one
         SDL.SDL_AUDIO_ALLOW_ANY_CHANGE // Allow SDL to adjust settings
     );
-    std.debug.print("{d}", .{audio_buf[0..44]});
+
     if (device_id == 0) {
         std.debug.print("SDL_OpenAudioDevice failed\n", .{});
         SDL.SDL_Quit();
         return;
     }
+
+    // load wav here
     defer SDL.SDL_CloseAudioDevice(device_id);
     defer SDL.SDL_Quit(); // Quit SDL
 
     // Queue the audio buffer to the audio device
 
-    const queue_result = SDL.SDL_QueueAudio(device_id, audio_buf, audio_len_un); // Example size: 2 bytes per sample (stereo 16-bit)
+    const queue_result = SDL.SDL_QueueAudio(device_id, buf.ptr, 2); // Example size: 2 bytes per sample (stereo 16-bit)
     if (queue_result != 0) {
         std.debug.print("SDL_QueueAudio failed\n", .{});
+        const err = SDL.SDL_GetError();
+        std.debug.print("{any}", .{err.*});
         SDL.SDL_CloseAudioDevice(device_id);
         SDL.SDL_Quit();
         return;
